@@ -379,67 +379,7 @@
   }
   .work-item:hover .work-arrow { opacity: 1; transform: translateY(-50%) translateX(0); }
 
-  /* ── EXPERIENCE ── */
-  #experience { background: #f0e9de; }
-  .exp-timeline {
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    padding-left: 40px;
-  }
-  .exp-timeline::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 12px; bottom: 12px;
-    width: 1px;
-    background: var(--line);
-  }
-  .exp-item {
-    position: relative;
-    padding-bottom: 56px;
-    opacity: 0;
-    transform: translateX(-20px);
-    transition: all 0.6s ease;
-  }
-  .exp-item.visible { opacity: 1; transform: translateX(0); }
-  .exp-item::before {
-    content: '';
-    position: absolute;
-    left: -44px;
-    top: 8px;
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: var(--rust);
-    border: 2px solid #f0e9de;
-  }
-  .exp-period {
-    font-family: var(--mono);
-    font-size: 10px;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 8px;
-  }
-  .exp-role {
-    font-size: 24px;
-    font-weight: 400;
-    margin-bottom: 4px;
-  }
-  .exp-company {
-    font-size: 16px;
-    color: var(--warm);
-    font-style: italic;
-    margin-bottom: 14px;
-  }
-  .exp-desc {
-    font-size: 16px;
-    color: var(--muted);
-    line-height: 1.65;
-    max-width: 560px;
-  }
-
-  /* ── PROJECTS ── */
+  /* ── ART ── */
   #projects { background: var(--ink); color: var(--cream); }
   #projects .section-label { color: var(--warm); }
   #projects .section-label::after { background: rgba(245,240,232,0.1); }
@@ -501,90 +441,6 @@
     transition: gap 0.3s;
   }
   .project-link:hover { gap: 14px; }
-
-  /* ── SKILLS ── */
-  #skills { background: var(--cream); }
-  .skills-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 40px;
-  }
-  .skill-group h4 {
-    font-family: var(--mono);
-    font-size: 10px;
-    letter-spacing: 0.25em;
-    text-transform: uppercase;
-    color: var(--rust);
-    margin-bottom: 20px;
-  }
-  .skill-list {
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  .skill-list li {
-    font-size: 16px;
-    font-weight: 300;
-    color: var(--ink);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .skill-list li::before {
-    content: '';
-    width: 3px; height: 3px;
-    border-radius: 50%;
-    background: var(--warm);
-    flex-shrink: 0;
-  }
-
-  /* ── BLOG ── */
-  #blog { background: #f0e9de; }
-  .blog-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 48px;
-  }
-  .blog-card {
-    position: relative;
-    cursor: pointer;
-  }
-  .blog-card-inner {
-    border-top: 2px solid var(--line);
-    padding-top: 28px;
-    transition: border-color 0.3s;
-  }
-  .blog-card:hover .blog-card-inner { border-color: var(--rust); }
-  .blog-date {
-    font-family: var(--mono);
-    font-size: 10px;
-    letter-spacing: 0.2em;
-    color: var(--muted);
-    text-transform: uppercase;
-    margin-bottom: 14px;
-  }
-  .blog-title {
-    font-size: 22px;
-    font-weight: 400;
-    line-height: 1.25;
-    margin-bottom: 14px;
-    letter-spacing: -0.01em;
-  }
-  .blog-excerpt {
-    font-size: 15px;
-    color: var(--muted);
-    line-height: 1.65;
-    margin-bottom: 20px;
-  }
-  .blog-read {
-    font-family: var(--mono);
-    font-size: 10px;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--rust);
-    text-decoration: none;
-  }
 
   /* ── CONTACT ── */
   #contact {
@@ -767,17 +623,13 @@
   <!-- Hero -->
   <section id="hero">
     <div class="hero-left">
-      <p class="hero-eyebrow">Portfolio — 2024</p>
+      <p class="hero-eyebrow"hi!/p>
       <h1 class="hero-name">
         Francesca<br>
-        <em>Gnuva</em>
       </h1>
       <p class="hero-desc">
-        a //modified this line 
       </p>
       <div class="scroll-indicator">
-        <span>Scroll</span>
-        <div class="scroll-line"></div>
       </div>
     </div>
     <div class="hero-right">
@@ -793,149 +645,57 @@
     <div class="about-grid">
       <div class="about-text reveal">
         <p>
-          a //modified this line
-        </p>
-        <p>
-         a//modified this line
-        </p>
-        <p>
-          a//modified this line
+          tbd
         </p>
       </div>
-      <div class="about-stats reveal">
-        <div class="stat">
-          <div class="stat-num">7+</div>
-          <div class="stat-label">Years of experience</div>
-        </div>
-        <div class="stat">
-          <div class="stat-num">1</div> //modified this line
-          <div class="stat-label">a</div> //modified this line
-        </div>
-        <div class="stat">
-          <div class="stat-num">12</div>
-          <div class="stat-label">a</div> //modified this line
-        </div>
       </div>
     </div>
   </section>
-
-  <!-- Work -->
-  <section id="work">
-    <div class="section-label">Selected Work</div>
-    <h2 class="section-heading reveal">Things I've <em>built</em></h2>
-    <div class="work-list">
-      <div class="work-item reveal">
-        <span class="work-num">01</span>
-        <div class="work-info">
-          <h3>a</h3> //modified this line
-          <p>a</p> //modified this line
-          <div class="work-tags">
-            <span class="tag">a</span> //modified this line
-            <span class="tag">a</span> //modified this line
-            <span class="tag">a</span> //modified this line
-          </div>
-        </div>
-        <span class="work-year">1</span> //modified this line
-        <span class="work-arrow">→</span>
-      </div>
-      <div class="work-item reveal">
-        <span class="work-num">02</span>
-        <div class="work-info">
-          <h3>a</h3> //modified this line
-          <p>a</p> //modified this line
-          <div class="work-tags">
-            <span class="tag">a</span> //modified this line
-            <span class="tag">a</span> //modified this line
-            <span class="tag">a</span> //modified this line
-          </div>
-        </div>
-        <span class="work-year">2023</span>
-        <span class="work-arrow">→</span>
-      </div>
-      <div class="work-item reveal">
-        <span class="work-num">03</span>
-        <div class="work-info">
-          <h3>Healthcare Data Platform</h3>
-          <p>Making complex clinical data legible for practitioners</p>
-          <div class="work-tags">
-            <span class="tag">Data Visualization</span>
-            <span class="tag">Healthcare</span>
-            <span class="tag">Accessibility</span>
-          </div>
-        </div>
-        <span class="work-year">2022</span>
-        <span class="work-arrow">→</span>
-      </div>
-      <div class="work-item reveal">
-        <span class="work-num">04</span>
-        <div class="work-info">
-          <h3>a, 0 → 1</h3> //modified this line
-          <p>a</p> //modified this line
-          <div class="work-tags">
-            <span class="tag">a</span> //modified this line
-            <span class="tag">a</span> //modified this line
-            <span class="tag">a</span> //modified this line
-          </div>
-        </div>
-        <span class="work-year">2021</span>
-        <span class="work-arrow">→</span>
-      </div>
-    </div>
-  </section>
-
+ 
   <!-- Experience -->
   <section id="experience">
-    <div class="section-label">Experience</div>
-    <h2 class="section-heading reveal">Where I've <em>been</em></h2>
+    <div class="section-label">Work </div>
     <div class="exp-timeline">
       <div class="exp-item">
-        <div class="exp-period">2023 — Present</div>
-        <div class="exp-role">a</div> //modified this line
-        <div class="exp-company">Your Current Company</div>
+        <div class="exp-period">2026 — Present</div>
+        <div class="exp-role">audacious ventures</div> //modified this line
+        <div class="exp-company">we exist to be the most impactful investor on your cap table</div>
+      </div>
+      <div class="exp-item">
+        <div class="exp-period">2025 - 2026</div>
+        <div class="exp-role">investor</div>
+        <div class="exp-company">hummingbird ventures</div>
+      </div>
+      <div class="exp-item">
+        <div class="exp-period">2024 — 2025</div>
+        <div class="exp-role">investor</div>
+        <div class="exp-company">ta associates</div>
         <p class="exp-desc">
-          a //modified this line
+          financial services and fintech, specifically asset management coverage; sourced and closed investment in kline hill partners 
         </p>
       </div>
       <div class="exp-item">
-        <div class="exp-period">2021 — 2023</div>
-        <div class="exp-role">Product Designer</div>
-        <div class="exp-company">Previous Company</div>
+        <div class="exp-period">2022 - 2024</div>
+        <div class="exp-role">investment banker</div>
+        <div class="exp-company">rothschild & co</div>
         <p class="exp-desc">
-          a //modified this line
-        </p>
-      </div>
-      <div class="exp-item">
-        <div class="exp-period">2019 — 2021</div>
-        <div class="exp-role">a</div> //modified this line
-        <div class="exp-company">Agency / Studio Name</div>
-        <p class="exp-desc">
-          a //modified this line
-        </p>
-      </div>
-      <div class="exp-item">
-        <div class="exp-period">2017 — 2019</div>
-        <div class="exp-role">Junior Designer</div>
-        <div class="exp-company">First Company</div>
-        <p class="exp-desc">
-          Learned the craft. Did everything. Grew fast.
+          excel and ppt
         </p>
       </div>
     </div>
   </section>
 
-  <!-- Projects -->
-  <section id="projects">
-    <div class="section-label">Side Projects</div>
-    <h2 class="section-heading reveal" style="color:var(--cream);">Things I build <em>for fun</em></h2>
+  <!-- Art -->
+  <section id="art">
+    <div class="section-label">art</div>
     <div class="projects-grid">
       <div class="project-card reveal">
         <div class="project-num">01</div>
-        <div class="project-title">Open Source UI Kit</div>
+        <div class="project-title">xyz</div>
         <p class="project-desc">
-          A minimal, opinionated component library for rapid product prototyping. 
-          Used by 2,000+ designers and developers.
+         oil painting
         </p>
-        <a href="#" class="project-link">View project →</a>
+        <a href="#" class="project-link">View→</a>
       </div>
       <div class="project-card reveal">
         <div class="project-num">02</div>
