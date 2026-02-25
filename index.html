@@ -1,804 +1,763 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Francesca Gnuva</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Francesca Gnuva</title>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <!-- Leaflet for city maps -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 
-<style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
 
-  :root {
-    --cream: #f5f0e8;
-    --ink: #1a1612;
-    --warm: #8b6f47;
-    --rust: #c4502a;
-    --muted: #9a8f82;
-    --line: rgba(26,22,18,0.12);
-    --serif: 'Cormorant Garamond', Georgia, serif;
-    --mono: 'DM Mono', monospace;
-  }
+    body {
+      background-color: #fff5f7;
+      color: #1a1a12;
+      font-family: 'EB Garamond', Georgia, serif;
+      font-size: 18px;
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
 
-  html { scroll-behavior: smooth; }
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 1000; opacity: 0.4;
+    }
 
-  body {
-    background: var(--cream);
-    color: var(--ink);
-    font-family: var(--serif);
-    font-size: 18px;
-    line-height: 1.6;
-    overflow-x: hidden;
-    cursor: none;
-  }
+    /* ── HEADER ── */
+    header {
+      padding: 3rem 6vw 0;
+      border-bottom: 1.5px solid #1a1a12;
+      animation: fadeDown 0.7s ease both;
+      flex-shrink: 0;
+    }
+    .header-top {
+      display: flex; align-items: baseline;
+      justify-content: space-between; flex-wrap: wrap;
+      gap: 1rem; padding-bottom: 1.2rem;
+    }
+    .site-name {
+      font-size: clamp(1.8rem, 4.5vw, 3.4rem);
+      font-weight: 500; letter-spacing: -0.02em; line-height: 1;
+      cursor: pointer; text-decoration: none; color: inherit; background: none; border: none;
+      font-family: 'EB Garamond', Georgia, serif;
+    }
+    .site-name em { font-style: italic; font-weight: 400; }
 
-  /* Custom cursor */
-  .cursor {
-    position: fixed;
-    width: 8px; height: 8px;
-    background: var(--rust);
-    border-radius: 50%;
-    pointer-events: none;
-    z-index: 9999;
-    transform: translate(-50%, -50%);
-    transition: transform 0.1s ease;
-    mix-blend-mode: multiply;
-  }
-  .cursor-ring {
-    position: fixed;
-    width: 32px; height: 32px;
-    border: 1px solid var(--rust);
-    border-radius: 50%;
-    pointer-events: none;
-    z-index: 9998;
-    transform: translate(-50%, -50%);
-    transition: all 0.15s ease;
-    opacity: 0.6;
-  }
-  a:hover ~ .cursor, button:hover ~ .cursor { transform: translate(-50%,-50%) scale(2); }
+    nav { display: flex; gap: 2rem; padding-top: 0.1rem; flex-wrap: wrap; }
+    nav button {
+      background: none; border: none;
+      font-family: 'Roboto Mono', monospace; font-size: 0.75rem;
+      letter-spacing: 0.03em; text-transform: lowercase; font-style: normal; font-weight: 400;
+      color: #1a1a12; cursor: pointer; padding: 0.65rem 0;
+      position: relative; opacity: 0.55; transition: opacity 0.2s;
+    }
+    nav button::after {
+      content: ''; position: absolute; bottom: 0; left: 0; right: 0;
+      height: 2px; background: #1a1a12;
+      transform: scaleX(0); transform-origin: left; transition: transform 0.22s ease;
+    }
+    nav button:hover { opacity: 1; }
+    nav button:hover::after { transform: scaleX(1); }
+    nav button.active { opacity: 1; }
+    nav button.active::after { transform: scaleX(1); }
 
-  /* Grain overlay */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-    pointer-events: none;
-    z-index: 9000;
-    opacity: 0.35;
-  }
+    /* ── PAGES ── */
+    .page { display: none; flex: 1; flex-direction: column; }
+    .page.active { display: flex; }
 
-  /* ── NAV ── */
-  nav {
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    z-index: 100;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 28px 56px;
-    mix-blend-mode: multiply;
-  }
-  .nav-logo {
-    font-family: var(--mono);
-    font-size: 11px;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--muted);
-    text-decoration: none;
-  }
-  .nav-links {
-    display: flex;
-    gap: 40px;
-    list-style: none;
-  }
-  .nav-links a {
-    font-family: var(--mono);
-    font-size: 11px;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--ink);
-    text-decoration: none;
-    position: relative;
-    opacity: 0.5;
-    transition: opacity 0.3s;
-  }
-  .nav-links a::after {
-    content: '';
-    position: absolute;
-    bottom: -2px; left: 0;
-    width: 0; height: 1px;
-    background: var(--rust);
-    transition: width 0.3s ease;
-  }
-  .nav-links a:hover { opacity: 1; }
-  .nav-links a:hover::after { width: 100%; }
+    /* ── HOME / GLOBE ── */
+    #page-home { align-items: center; padding: 2.5rem 4vw 4rem; }
+    #globe-wrap {
+      width: min(600px, 86vw); aspect-ratio: 1/1;
+      animation: fadeUp 0.9s ease 0.15s both;
+    }
+    #globe-svg { width: 100%; height: 100%; cursor: grab; display: block; }
+    #globe-svg:active { cursor: grabbing; }
 
-  /* ── HERO ── */
-  #hero {
-    min-height: 100vh;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    position: relative;
-    overflow: hidden;
-  }
-  .hero-left {
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    padding: 0 56px 80px 56px;
-    position: relative;
-    z-index: 2;
-  }
-  .hero-eyebrow {
-    font-family: var(--mono);
-    font-size: 10px;
-    letter-spacing: 0.3em;
-    text-transform: uppercase;
-    color: var(--rust);
-    margin-bottom: 28px;
-    opacity: 0;
-    animation: fadeUp 0.8s 0.3s forwards;
-  }
-  .hero-name {
-    font-size: clamp(64px, 7vw, 110px);
-    font-weight: 300;
-    line-height: 0.92;
-    letter-spacing: -0.02em;
-    margin-bottom: 36px;
-    opacity: 0;
-    animation: fadeUp 0.8s 0.5s forwards;
-  }
-  .hero-name em {
-    font-style: italic;
-    color: var(--warm);
-  }
-  .hero-desc {
-    font-size: 17px;
-    font-weight: 300;
-    color: var(--muted);
-    max-width: 380px;
-    line-height: 1.7;
-    opacity: 0;
-    animation: fadeUp 0.8s 0.7s forwards;
-  }
-  .hero-right {
-    position: relative;
-    overflow: hidden;
-  }
-  .hero-image-placeholder {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, #e8ddd0 0%, #d4c5b0 50%, #c8b89a 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .hero-image-placeholder::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background:
-      radial-gradient(ellipse at 30% 70%, rgba(139,111,71,0.3) 0%, transparent 60%),
-      radial-gradient(ellipse at 70% 30%, rgba(196,80,42,0.15) 0%, transparent 50%);
-  }
-  .hero-image-label {
-    font-family: var(--mono);
-    font-size: 10px;
-    letter-spacing: 0.2em;
-    color: var(--warm);
-    opacity: 0.6;
-    text-transform: uppercase;
-    writing-mode: vertical-rl;
-  }
-  .scroll-indicator {
-    position: absolute;
-    bottom: 48px;
-    right: 56px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-    opacity: 0;
-    animation: fadeUp 0.8s 1.2s forwards;
-  }
-  .scroll-indicator span {
-    font-family: var(--mono);
-    font-size: 9px;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--muted);
-    writing-mode: vertical-rl;
-  }
-  .scroll-line {
-    width: 1px;
-    height: 60px;
-    background: linear-gradient(to bottom, var(--muted), transparent);
-    animation: scrollPulse 2s infinite;
-  }
+    #map-tooltip {
+      display: none; position: fixed;
+      background: rgba(255,255,255,0.93); border: 1px solid #1a1a12;
+      padding: 6px 12px; font-family: 'EB Garamond', serif;
+      font-size: 0.95rem; pointer-events: none; z-index: 500;
+      transition: opacity 0.15s;
+    }
 
-  /* ── SECTIONS SHARED ── */
-  section {
-    padding: 120px 56px;
-    position: relative;
-  }
-  .section-label {
-    font-family: var(--mono);
-    font-size: 10px;
-    letter-spacing: 0.3em;
-    text-transform: uppercase;
-    color: var(--rust);
-    margin-bottom: 64px;
-    display: flex;
-    align-items: center;
-    gap: 20px;
-  }
-  .section-label::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--line);
-    max-width: 200px;
-  }
-  .section-heading {
-    font-size: clamp(36px, 4vw, 64px);
-    font-weight: 300;
-    line-height: 1.1;
-    letter-spacing: -0.02em;
-    margin-bottom: 48px;
-  }
-  .section-heading em {
-    font-style: italic;
-    color: var(--warm);
-  }
+    /* ── INNER PAGES ── */
+    .inner-page { padding: 4rem 8vw 6rem; max-width: 860px; animation: fadeUp 0.6s ease both; }
+    .page-title {
+      font-size: clamp(2rem, 4vw, 3rem); font-weight: 400;
+      font-style: italic; margin-bottom: 3rem; letter-spacing: -0.01em;
+    }
 
-  /* ── ABOUT ── */
-  #about {
-    background: var(--ink);
-    color: var(--cream);
-  }
-  #about .section-label { color: var(--warm); }
-  #about .section-label::after { background: rgba(245,240,232,0.1); }
-  .about-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 80px;
-    align-items: start;
-  }
-  .about-text p {
-    font-size: 19px;
-    font-weight: 300;
-    line-height: 1.75;
-    color: rgba(245,240,232,0.8);
-    margin-bottom: 24px;
-  }
-  .about-text p:first-child::first-letter {
-    font-size: 64px;
-    font-weight: 300;
-    float: left;
-    line-height: 0.8;
-    margin-right: 8px;
-    margin-top: 8px;
-    color: var(--warm);
-  }
-  .about-stats {
-    display: flex;
-    flex-direction: column;
-    gap: 40px;
-    padding-top: 20px;
-  }
-  .stat {
-    border-top: 1px solid rgba(245,240,232,0.1);
-    padding-top: 24px;
-  }
-  .stat-num {
-    font-size: 56px;
-    font-weight: 300;
-    color: var(--cream);
-    letter-spacing: -0.03em;
-    line-height: 1;
-    margin-bottom: 8px;
-  }
-  .stat-label {
-    font-family: var(--mono);
-    font-size: 10px;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--muted);
-  }
+    /* Experience */
+    .exp-entry {
+      display: grid; grid-template-columns: 130px 1fr;
+      gap: 0 2.5rem; padding: 1.8rem 0;
+      border-top: 1px solid rgba(26,26,18,0.18);
+    }
+    .exp-entry:last-child { border-bottom: 1px solid rgba(26,26,18,0.18); }
+    .exp-year { font-size: 0.85rem; font-style: italic; opacity: 0.5; padding-top: 0.15rem; }
+    .exp-role { font-size: 1.1rem; font-weight: 500; margin-bottom: 0.2rem; }
+    .exp-place { font-style: italic; opacity: 0.65; font-size: 0.97rem; margin-bottom: 0.4rem; }
+    .exp-desc { font-size: 0.95rem; opacity: 0.75; line-height: 1.65; }
+    @media (max-width: 560px) { .exp-entry { grid-template-columns: 1fr; gap: 0.3rem 0; } }
 
-  /* ── WORK ── */
-  #work { background: var(--cream); }
-  .work-list {
-    display: flex;
-    flex-direction: column;
-  }
-  .work-item {
-    display: grid;
-    grid-template-columns: 80px 1fr auto;
-    gap: 40px;
-    align-items: start;
-    padding: 48px 0;
-    border-top: 1px solid var(--line);
-    position: relative;
-    cursor: pointer;
-    transition: padding 0.3s ease;
-  }
-  .work-item:last-child { border-bottom: 1px solid var(--line); }
-  .work-item:hover { padding-left: 20px; }
-  .work-num {
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--muted);
-    letter-spacing: 0.1em;
-    padding-top: 6px;
-  }
-  .work-info h3 {
-    font-size: 28px;
-    font-weight: 400;
-    margin-bottom: 8px;
-    letter-spacing: -0.01em;
-  }
-  .work-info p {
-    font-size: 15px;
-    color: var(--muted);
-    font-style: italic;
-    margin-bottom: 12px;
-  }
-  .work-tags {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-  .tag {
-    font-family: var(--mono);
-    font-size: 9px;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    padding: 4px 10px;
-    border: 1px solid var(--line);
-    color: var(--muted);
-    border-radius: 20px;
-  }
-  .work-year {
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--muted);
-    padding-top: 6px;
-  }
-  .work-arrow {
-    position: absolute;
-    right: 0;
-    top: 50%;
-    transform: translateY(-50%) translateX(-10px);
-    opacity: 0;
-    color: var(--rust);
-    font-size: 20px;
-    transition: all 0.3s;
-  }
-  .work-item:hover .work-arrow { opacity: 1; transform: translateY(-50%) translateX(0); }
+    /* Cards */
+    .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.8rem; }
+    .card {
+      background: rgba(255,255,255,0.3); border: 1px solid rgba(26,26,18,0.15);
+      padding: 1.8rem; transition: background 0.22s, transform 0.22s, box-shadow 0.22s;
+    }
+    .card:hover {
+      background: rgba(255,255,255,0.55); transform: translateY(-4px);
+      box-shadow: 0 10px 28px rgba(26,26,18,0.1);
+    }
+    .card-tag { font-size: 0.75rem; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.45; margin-bottom: 0.6rem; }
+    .card-title { font-size: 1.2rem; font-weight: 500; line-height: 1.3; margin-bottom: 0.5rem; }
+    .card-desc { font-size: 0.93rem; font-style: italic; opacity: 0.65; line-height: 1.6; }
+    .card-link {
+      display: inline-block; margin-top: 1rem; font-size: 0.82rem;
+      letter-spacing: 0.08em; text-transform: uppercase; color: #1a1a12;
+      text-decoration: none; border-bottom: 1px solid #1a1a12; opacity: 0.55; transition: opacity 0.2s;
+    }
+    .card-link:hover { opacity: 1; }
 
-  /* ── ART ── */
-  #projects { background: var(--ink); color: var(--cream); }
-  #projects .section-label { color: var(--warm); }
-  #projects .section-label::after { background: rgba(245,240,232,0.1); }
-  .projects-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 2px;
-  }
-  .project-card {
-    background: rgba(245,240,232,0.03);
-    padding: 48px 40px;
-    border: 1px solid rgba(245,240,232,0.06);
-    position: relative;
-    overflow: hidden;
-    transition: background 0.3s;
-    cursor: pointer;
-  }
-  .project-card::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(196,80,42,0.08), transparent);
-    opacity: 0;
-    transition: opacity 0.3s;
-  }
-  .project-card:hover { background: rgba(245,240,232,0.06); }
-  .project-card:hover::before { opacity: 1; }
-  .project-num {
-    font-family: var(--mono);
-    font-size: 48px;
-    font-weight: 300;
-    color: rgba(245,240,232,0.06);
-    line-height: 1;
-    margin-bottom: 24px;
-    letter-spacing: -0.05em;
-  }
-  .project-title {
-    font-size: 22px;
-    font-weight: 400;
-    margin-bottom: 16px;
-    line-height: 1.2;
-  }
-  .project-desc {
-    font-size: 14px;
-    color: rgba(245,240,232,0.5);
-    line-height: 1.65;
-    margin-bottom: 28px;
-  }
-  .project-link {
-    font-family: var(--mono);
-    font-size: 10px;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--rust);
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: gap 0.3s;
-  }
-  .project-link:hover { gap: 14px; }
+    /* ── CITY PAGE ── */
+    #page-city { flex-direction: column; }
 
-  /* ── CONTACT ── */
-  #contact {
-    background: var(--ink);
-    color: var(--cream);
-    min-height: 60vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-  }
-  #contact .section-label { color: var(--warm); }
-  #contact .section-label::after { background: rgba(245,240,232,0.1); }
-  .contact-layout {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 80px;
-    align-items: start;
-  }
-  .contact-heading {
-    font-size: clamp(40px, 5vw, 80px);
-    font-weight: 300;
-    line-height: 1.05;
-    letter-spacing: -0.02em;
-  }
-  .contact-heading em { font-style: italic; color: var(--warm); }
-  .contact-form {
-    display: flex;
-    flex-direction: column;
-    gap: 28px;
-    padding-top: 12px;
-  }
-  .form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-  .form-group label {
-    font-family: var(--mono);
-    font-size: 9px;
-    letter-spacing: 0.25em;
-    text-transform: uppercase;
-    color: var(--muted);
-  }
-  .form-group input, .form-group textarea {
-    background: transparent;
-    border: none;
-    border-bottom: 1px solid rgba(245,240,232,0.2);
-    padding: 12px 0;
-    color: var(--cream);
-    font-family: var(--serif);
-    font-size: 17px;
-    font-weight: 300;
-    outline: none;
-    transition: border-color 0.3s;
-    resize: none;
-  }
-  .form-group input:focus, .form-group textarea:focus {
-    border-color: var(--warm);
-  }
-  .form-group input::placeholder, .form-group textarea::placeholder {
-    color: rgba(245,240,232,0.25);
-  }
-  .btn-submit {
-    display: inline-flex;
-    align-items: center;
-    gap: 14px;
-    background: transparent;
-    border: 1px solid rgba(245,240,232,0.3);
-    padding: 18px 36px;
-    color: var(--cream);
-    font-family: var(--mono);
-    font-size: 10px;
-    letter-spacing: 0.25em;
-    text-transform: uppercase;
-    cursor: none;
-    transition: all 0.3s;
-    margin-top: 8px;
-  }
-  .btn-submit:hover {
-    background: var(--rust);
-    border-color: var(--rust);
-  }
-  .social-links {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    margin-top: 48px;
-  }
-  .social-link {
-    font-family: var(--mono);
-    font-size: 11px;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: rgba(245,240,232,0.4);
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    transition: color 0.3s;
-  }
-  .social-link::before {
-    content: '↗';
-    color: var(--rust);
-    font-family: var(--serif);
-    font-size: 14px;
-  }
-  .social-link:hover { color: var(--cream); }
+    .city-header {
+      padding: 2rem 6vw 1.5rem;
+      border-bottom: 1px solid rgba(26,26,18,0.18);
+      display: flex; align-items: center; gap: 1.5rem;
+      animation: fadeUp 0.5s ease both;
+    }
 
-  /* ── FOOTER ── */
-  footer {
-    background: var(--ink);
-    border-top: 1px solid rgba(245,240,232,0.06);
-    padding: 28px 56px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  footer span {
-    font-family: var(--mono);
-    font-size: 10px;
-    letter-spacing: 0.15em;
-    color: rgba(245,240,232,0.2);
-    text-transform: uppercase;
-  }
+    .city-back {
+      background: none; border: none; cursor: pointer;
+      font-family: 'EB Garamond', serif; font-size: 0.9rem;
+      letter-spacing: 0.08em; text-transform: uppercase; font-style: italic;
+      color: #1a1a12; opacity: 0.5; transition: opacity 0.2s;
+      display: flex; align-items: center; gap: 0.4rem;
+    }
+    .city-back:hover { opacity: 1; }
 
-  /* ── ANIMATIONS ── */
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(30px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  @keyframes scrollPulse {
-    0%, 100% { opacity: 0.3; transform: scaleY(1); transform-origin: top; }
-    50%       { opacity: 0.8; transform: scaleY(1.1); transform-origin: top; }
-  }
+    .city-title {
+      font-size: clamp(1.6rem, 3.5vw, 2.6rem); font-weight: 400;
+      font-style: italic; letter-spacing: -0.01em;
+    }
 
-  .reveal {
-    opacity: 0;
-    transform: translateY(24px);
-    transition: opacity 0.7s ease, transform 0.7s ease;
-  }
-  .reveal.visible {
-    opacity: 1;
-    transform: translateY(0);
-  }
+    .city-layout {
+      display: flex; flex: 1; min-height: 0;
+      animation: fadeUp 0.6s ease 0.1s both;
+    }
 
-  /* ── RESPONSIVE ── */
-  @media (max-width: 900px) {
-    nav { padding: 24px 28px; }
-    .nav-links { display: none; }
-    section { padding: 80px 28px; }
-    #hero { grid-template-columns: 1fr; }
-    .hero-right { display: none; }
-    .hero-left { padding: 120px 28px 72px; }
-    .about-grid, .contact-layout, .blog-grid { grid-template-columns: 1fr; gap: 48px; }
-    .projects-grid { grid-template-columns: 1fr; }
-    .skills-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
-    footer { flex-direction: column; gap: 12px; text-align: center; }
-  }
-</style>
+    #city-map {
+      flex: 1;
+      min-height: 520px;
+      z-index: 1;
+    }
+
+    .city-sidebar {
+      width: 280px; flex-shrink: 0;
+      border-left: 1.5px solid #1a1a12;
+      display: flex; flex-direction: column;
+      overflow: hidden;
+      background: rgba(255, 245, 247, 0.8);
+    }
+
+    .sidebar-title {
+      padding: 1.4rem 1.5rem 1rem;
+      font-size: 0.8rem; letter-spacing: 0.14em;
+      text-transform: uppercase; opacity: 0.45;
+      border-bottom: 1px solid rgba(26,26,18,0.12);
+    }
+
+    .spots-list {
+      flex: 1; overflow-y: auto; padding: 0.5rem 0;
+    }
+
+    .spot-item {
+      padding: 0.9rem 1.5rem;
+      border-bottom: 1px solid rgba(26,26,18,0.08);
+      cursor: pointer; transition: background 0.15s;
+      display: flex; gap: 0.8rem; align-items: flex-start;
+    }
+    .spot-item:hover { background: rgba(255,255,255,0.4); }
+
+    .spot-emoji { font-size: 1rem; margin-top: 0.1rem; flex-shrink: 0; }
+    .spot-info {}
+    .spot-name { font-size: 1rem; font-weight: 500; line-height: 1.2; }
+    .spot-cat {
+      font-size: 0.78rem; font-style: italic; opacity: 0.5;
+      letter-spacing: 0.04em; margin-top: 0.1rem;
+    }
+
+    /* custom leaflet popup */
+    .leaflet-popup-content-wrapper {
+      font-family: 'EB Garamond', serif !important;
+      border-radius: 0 !important;
+      border: 1px solid #1a1a12 !important;
+      box-shadow: 4px 4px 0 rgba(26,26,18,0.08) !important;
+      background: rgba(255,250,245,0.97) !important;
+    }
+    .leaflet-popup-tip { background: rgba(255,250,245,0.97) !important; }
+    .leaflet-popup-content { font-size: 1rem; line-height: 1.5; margin: 10px 14px !important; }
+    .popup-name { font-weight: 500; font-size: 1.05rem; }
+    .popup-cat { font-style: italic; opacity: 0.6; font-size: 0.88rem; }
+    .popup-note { margin-top: 0.3rem; font-size: 0.92rem; opacity: 0.8; }
+
+    /* custom marker dot */
+    .spot-dot {
+      width: 14px; height: 14px; border-radius: 50%;
+      border: 2px solid white;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+    }
+
+    @media (max-width: 700px) {
+      .city-layout { flex-direction: column; }
+      .city-sidebar { width: 100%; border-left: none; border-top: 1.5px solid #1a1a12; max-height: 240px; }
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1.5px solid #1a1a12; padding: 1.8rem 6vw;
+      display: flex; justify-content: space-between;
+      font-size: 0.85rem; font-style: italic; opacity: 0.5;
+      flex-wrap: wrap; gap: 0.5rem; flex-shrink: 0;
+    }
+    footer a { color: #1a1a12; text-decoration: none; border-bottom: 1px solid currentColor; }
+
+    @keyframes fadeDown { from { opacity:0; transform:translateY(-12px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes fadeUp   { from { opacity:0; transform:translateY(16px);  } to { opacity:1; transform:translateY(0); } }
+  </style>
 </head>
-
 <body>
-  <!-- Cursor -->
-  <div class="cursor" id="cursor"></div>
-  <div class="cursor-ring" id="cursorRing"></div>
 
-  <!-- Nav -->
-  <nav>
-    <a href="#" class="nav-logo">F. Gnuva</a>
-    <ul class="nav-links">
-      <li><a href="#about">About</a></li>
-      <li><a href="#work">Work</a></li>
-      <li><a href="#experience">Experience</a></li>
-      <li><a href="#projects">Projects</a></li>
-      <li><a href="#blog">Writing</a></li>
-      <li><a href="#contact">Contact</a></li>
-    </ul>
-  </nav>
+  <header>
+    <div class="header-top">
+      <button class="site-name" onclick="showPage('home')">Francesca <em>Gnuva</em></button>
+    </div>
+    <nav>
+      <button id="nav-experiences" onclick="showPage('experiences')">experiences</button>
+      <button id="nav-art"         onclick="showPage('art')">art</button>
+      <button id="nav-writings"    onclick="showPage('writings')">writings</button>
+      <button id="nav-readings"    onclick="showPage('readings')">readings</button>
+      <button id="nav-music"       onclick="showPage('music')">music</button>
+    </nav>
+  </header>
 
-  <!-- Hero -->
-  <section id="hero">
-    <div class="hero-left">
-      <p class="hero-eyebrow"hi!/p>
-      <h1 class="hero-name">
-        Francesca<br>
-      </h1>
-      <p class="hero-desc">
-      </p>
-      <div class="scroll-indicator">
-      </div>
+  <!-- HOME -->
+  <div id="page-home" class="page active">
+    <div id="globe-wrap">
+      <svg id="globe-svg"></svg>
     </div>
-    <div class="hero-right">
-      <div class="hero-image-placeholder">
-        <span class="hero-image-label">Your photo here</span>
-      </div>
-    </div>
-  </section>
+  </div>
 
-  <!-- About -->
-  <section id="about">
-    <div class="section-label">About</div>
-    <div class="about-grid">
-      <div class="about-text reveal">
-        <p>
-          tbd
-        </p>
-      </div>
-      </div>
-    </div>
-  </section>
- 
-  <!-- Experience -->
-  <section id="experience">
-    <div class="section-label">Work </div>
-    <div class="exp-timeline">
-      <div class="exp-item">
-        <div class="exp-period">2026 — Present</div>
-        <div class="exp-role">audacious ventures</div> //modified this line
-        <div class="exp-company">we exist to be the most impactful investor on your cap table</div>
-      </div>
-      <div class="exp-item">
-        <div class="exp-period">2025 - 2026</div>
-        <div class="exp-role">investor</div>
-        <div class="exp-company">hummingbird ventures</div>
-      </div>
-      <div class="exp-item">
-        <div class="exp-period">2024 — 2025</div>
-        <div class="exp-role">investor</div>
-        <div class="exp-company">ta associates</div>
-        <p class="exp-desc">
-          financial services and fintech, specifically asset management coverage; sourced and closed investment in kline hill partners 
-        </p>
-      </div>
-      <div class="exp-item">
-        <div class="exp-period">2022 - 2024</div>
-        <div class="exp-role">investment banker</div>
-        <div class="exp-company">rothschild & co</div>
-        <p class="exp-desc">
-          excel and ppt
-        </p>
-      </div>
-    </div>
-  </section>
-
-  <!-- Art -->
-  <section id="art">
-    <div class="section-label">art</div>
-    <div class="projects-grid">
-      <div class="project-card reveal">
-        <div class="project-num">01</div>
-        <div class="project-title">xyz</div>
-        <p class="project-desc">
-         oil painting
-        </p>
-        <a href="#" class="project-link">View→</a>
-      </div>
-      <div class="project-card reveal">
-        <div class="project-num">02</div>
-        <div class="project-title">Design Newsletter</div>
-        <p class="project-desc">
-          Weekly thoughts on product design, taste, and building things with 
-          intention. 5,000 subscribers and growing.
-        </p>
-        <a href="#" class="project-link">Read it →</a>
-      </div>
-      <div class="project-card reveal">
-        <div class="project-num">03</div>
-        <div class="project-title">Photography Archive</div>
-        <p class="project-desc">
-          A collection of images from travels across 12 countries. Shot on film 
-          and digital. No filters, no edits.
-        </p>
-        <a href="#" class="project-link">See photos →</a>
-      </div>
-    </div>
-  </section>
-
-  <!-- Contact -->
-  <section id="contact">
-    <div class="section-label">Contact</div>
-    <div class="contact-layout">
-      <div>
-        <h2 class="contact-heading">
-          Let's make<br>something <em>together</em>
-        </h2>
-        <div class="social-links">
-          <a href="https://linkedin.com/in/francescagnuva" class="social-link">LinkedIn</a>
-          <a href="https://twitter.com/francescagnuva" class="social-link">Twitter / X</a>
-          <a href="https://read.cv/francescagnuva" class="social-link">Read.cv</a>
-          <a href="mailto:hello@francescagnuva.com" class="social-link">hello@francescagnuva.com</a>
+  <!-- EXPERIENCES -->
+  <div id="page-experiences" class="page">
+    <div class="inner-page">
+      <h2 class="page-title">Experiences</h2>
+      <div class="exp-entry">
+        <div class="exp-year">2024 – present</div>
+        <div>
+          <div class="exp-role">Role / Position</div>
+          <div class="exp-place">Organisation or Company</div>
+          <div class="exp-desc">A short description of what you do or did here.</div>
         </div>
       </div>
-      <form class="contact-form reveal" onsubmit="return false;">
-        <div class="form-group">
-          <label>Your name</label>
-          <input type="text" placeholder="Jane Smith">
+      <div class="exp-entry">
+        <div class="exp-year">2023</div>
+        <div>
+          <div class="exp-role">Role / Position</div>
+          <div class="exp-place">Organisation or Company</div>
+          <div class="exp-desc">A short description of what you do or did here.</div>
         </div>
-        <div class="form-group">
-          <label>Your email</label>
-          <input type="email" placeholder="jane@example.com">
+      </div>
+      <div class="exp-entry">
+        <div class="exp-year">2022</div>
+        <div>
+          <div class="exp-role">Role / Position</div>
+          <div class="exp-place">Organisation or Company</div>
+          <div class="exp-desc">A short description of what you do or did here.</div>
         </div>
-        <div class="form-group">
-          <label>Message</label>
-          <textarea rows="4" placeholder="Tell me what you're working on..."></textarea>
-        </div>
-        <button class="btn-submit">Send message →</button>
-      </form>
+      </div>
     </div>
-  </section>
+  </div>
+
+  <!-- ART -->
+  <div id="page-art" class="page">
+    <div class="inner-page">
+      <h2 class="page-title">Art</h2>
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-tag">Series · 2024</div>
+          <div class="card-title">Work or Series Title</div>
+          <div class="card-desc">Medium, materials, or a brief note about the concept.</div>
+          <a class="card-link" href="#">View →</a>
+        </div>
+        <div class="card">
+          <div class="card-tag">Installation · 2023</div>
+          <div class="card-title">Another Work</div>
+          <div class="card-desc">Medium, materials, or a brief note about the concept.</div>
+          <a class="card-link" href="#">View →</a>
+        </div>
+        <div class="card">
+          <div class="card-tag">Drawing · 2022</div>
+          <div class="card-title">Ongoing Practice</div>
+          <div class="card-desc">Medium, materials, or a brief note about the concept.</div>
+          <a class="card-link" href="#">View →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WRITINGS -->
+  <div id="page-writings" class="page">
+    <div class="inner-page">
+      <h2 class="page-title">Writings</h2>
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-tag">Essay · 2024</div>
+          <div class="card-title">Essay or Article Title</div>
+          <div class="card-desc">Published in — a brief note about the argument or subject.</div>
+          <a class="card-link" href="#">Read →</a>
+        </div>
+        <div class="card">
+          <div class="card-tag">Essay · 2023</div>
+          <div class="card-title">Another Writing</div>
+          <div class="card-desc">Published in — a brief note about the argument or subject.</div>
+          <a class="card-link" href="#">Read →</a>
+        </div>
+        <div class="card">
+          <div class="card-tag">Review · 2023</div>
+          <div class="card-title">Review or Short Form</div>
+          <div class="card-desc">Published in — a brief note about the argument or subject.</div>
+          <a class="card-link" href="#">Read →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- READINGS -->
+  <div id="page-readings" class="page">
+    <div class="inner-page">
+      <h2 class="page-title">Readings</h2>
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-tag">Novel · Fiction</div>
+          <div class="card-title">Book Title</div>
+          <div class="card-desc">Author — a brief note on why this book matters to you.</div>
+        </div>
+        <div class="card">
+          <div class="card-tag">Non-fiction · Philosophy</div>
+          <div class="card-title">Another Title</div>
+          <div class="card-desc">Author — a brief note on why this book matters to you.</div>
+        </div>
+        <div class="card">
+          <div class="card-tag">Poetry</div>
+          <div class="card-title">Collection Title</div>
+          <div class="card-desc">Author — a brief note on why this book matters to you.</div>
+        </div>
+        <div class="card">
+          <div class="card-tag">Essay collection</div>
+          <div class="card-title">Another Title</div>
+          <div class="card-desc">Author — a brief note on why this book matters to you.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MUSIC -->
+  <div id="page-music" class="page">
+    <div class="inner-page">
+      <h2 class="page-title">Music</h2>
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-tag">Album</div>
+          <div class="card-title">Album Title</div>
+          <div class="card-desc">Artist — a brief note on what this record means to you.</div>
+        </div>
+        <div class="card">
+          <div class="card-tag">Album</div>
+          <div class="card-title">Another Album</div>
+          <div class="card-desc">Artist — a brief note on what this record means to you.</div>
+        </div>
+        <div class="card">
+          <div class="card-tag">Playlist</div>
+          <div class="card-title">Playlist Name</div>
+          <div class="card-desc">A brief description of the mood or theme of this playlist.</div>
+          <a class="card-link" href="#">Listen →</a>
+        </div>
+        <div class="card">
+          <div class="card-tag">Artist</div>
+          <div class="card-title">Artist Name</div>
+          <div class="card-desc">A brief note on why this artist's work stays with you.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CITY PAGE -->
+  <div id="page-city" class="page">
+    <div class="city-header">
+      <button class="city-back" onclick="showPage('home')">← Globe</button>
+      <h2 class="city-title" id="city-page-title"></h2>
+    </div>
+    <div class="city-layout">
+      <div id="city-map"></div>
+      <div class="city-sidebar">
+        <div class="sidebar-title">Favourite spots</div>
+        <div class="spots-list" id="spots-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="map-tooltip"></div>
 
   <footer>
-    <span>© 2026 Francesca Gnuva</span>
-    <span>francescagnuva.com</span>
+    <span>© 2025 Francesca Gnuva</span>
+    <a href="mailto:hello@francescagnuva.com">hello@francescagnuva.com</a>
   </footer>
 
+  <!-- D3 + TopoJSON -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+
   <script>
-    // Custom cursor
-    const cursor = document.getElementById('cursor');
-    const ring = document.getElementById('cursorRing');
-    document.addEventListener('mousemove', e => {
-      cursor.style.left = e.clientX + 'px';
-      cursor.style.top  = e.clientY + 'px';
-      setTimeout(() => {
-        ring.style.left = e.clientX + 'px';
-        ring.style.top  = e.clientY + 'px';
-      }, 80);
-    });
-    document.querySelectorAll('a, button').forEach(el => {
-      el.addEventListener('mouseenter', () => {
-        cursor.style.transform = 'translate(-50%,-50%) scale(2.5)';
-        ring.style.transform   = 'translate(-50%,-50%) scale(1.5)';
-        ring.style.opacity     = '0.3';
+  // ─────────────────────────────────────────────
+  //  CITY DATA  — add / edit spots here
+  // ─────────────────────────────────────────────
+  const CITIES = {
+    'San Francisco': {
+      lat: 37.7749, lon: -122.4194, zoom: 13,
+      spots: [
+        { name: 'Tartine Bakery',        cat: 'Café / Bakery',  emoji: '🥐', lat: 37.7612, lon: -122.4240, note: 'Best morning bun in the city.' },
+        { name: 'Dolores Park',          cat: 'Park',           emoji: '🌿', lat: 37.7596, lon: -122.4269, note: 'Picnics with a skyline view.' },
+        { name: 'SFMOMA',               cat: 'Museum',         emoji: '🖼', lat: 37.7857, lon: -122.4011, note: 'Essential contemporary art.' },
+        { name: 'Nopa',                  cat: 'Restaurant',     emoji: '🍽', lat: 37.7757, lon: -122.4367, note: 'Late-night wood-fired cooking.' },
+        { name: 'City Lights Bookstore', cat: 'Bookshop',       emoji: '📚', lat: 37.7979, lon: -122.4066, note: 'Beat poetry birthplace.' },
+        { name: 'Sightglass Coffee',     cat: 'Coffee',         emoji: '☕', lat: 37.7754, lon: -122.4094, note: 'Beautiful SoMa roastery.' },
+      ]
+    },
+    'New York City': {
+      lat: 40.7128, lon: -74.0060, zoom: 12,
+      spots: [
+        { name: 'The Met',               cat: 'Museum',         emoji: '🖼', lat: 40.7794, lon: -73.9632, note: 'A whole day, every time.' },
+        { name: 'Russ & Daughters',      cat: 'Deli / Café',    emoji: '🥯', lat: 40.7220, lon: -73.9874, note: 'Legendary Lower East Side deli.' },
+        { name: 'Prospect Park',         cat: 'Park',           emoji: '🌿', lat: 40.6602, lon: -73.9690, note: 'Brooklyn's breathing room.' },
+        { name: 'Via Carota',            cat: 'Restaurant',     emoji: '🍽', lat: 40.7333, lon: -74.0027, note: 'Perfect Italian in the West Village.' },
+        { name: 'McNally Jackson',       cat: 'Bookshop',       emoji: '📚', lat: 40.7233, lon: -73.9985, note: 'Best indie bookshop downtown.' },
+        { name: 'Attaboy',               cat: 'Bar',            emoji: '🍸', lat: 40.7216, lon: -73.9893, note: 'No-menu cocktail bar, always surprising.' },
+      ]
+    },
+    'Boston': {
+      lat: 42.3601, lon: -71.0589, zoom: 13,
+      spots: [
+        { name: 'Isabella Stewart Gardner Museum', cat: 'Museum', emoji: '🖼', lat: 42.3382, lon: -71.0990, note: 'The stolen paintings haunt the empty frames.' },
+        { name: 'Tatte Bakery',           cat: 'Café',           emoji: '🥐', lat: 42.3467, lon: -71.0972, note: 'Israeli-inspired, flaky and lovely.' },
+        { name: 'Arnold Arboretum',       cat: 'Park',           emoji: '🌿', lat: 42.3015, lon: -71.1254, note: 'Ancient trees, free and quiet.' },
+        { name: 'Oleana',                 cat: 'Restaurant',     emoji: '🍽', lat: 42.3650, lon: -71.1033, note: 'Ana Sortun's Eastern Mediterranean cooking.' },
+        { name: 'Trident Booksellers',   cat: 'Bookshop',       emoji: '📚', lat: 42.3497, lon: -71.0827, note: 'Cozy Back Bay books and coffee.' },
+        { name: 'Drink',                  cat: 'Bar',            emoji: '🍸', lat: 42.3485, lon: -71.0480, note: 'Fort Point cocktail institution.' },
+      ]
+    },
+    'Austin': {
+      lat: 30.2672, lon: -97.7431, zoom: 12,
+      spots: [
+        { name: 'Blanton Museum of Art',  cat: 'Museum',         emoji: '🖼', lat: 30.2823, lon: -97.7393, note: 'Ellsworth Kelly chapel alone is worth it.' },
+        { name: 'Barton Springs Pool',    cat: 'Park / Swim',    emoji: '🌿', lat: 30.2635, lon: -97.7720, note: 'Cold spring-fed swim in the heat.' },
+        { name: 'Uchi',                   cat: 'Restaurant',     emoji: '🍽', lat: 30.2594, lon: -97.7584, note: 'Japanese-Texas fusion, exceptional.' },
+        { name: 'BookPeople',             cat: 'Bookshop',       emoji: '📚', lat: 30.2798, lon: -97.7499, note: 'Austin's beloved indie bookstore.' },
+        { name: 'Whisler\'s',             cat: 'Bar',            emoji: '🍸', lat: 30.2632, lon: -97.7237, note: 'Mezcal bar with a rooftop mezcaleria.' },
+        { name: 'Juan In A Million',      cat: 'Breakfast',      emoji: '🌮', lat: 30.2639, lon: -97.7172, note: 'Don Juan taco, a local legend.' },
+      ]
+    },
+  };
+
+  // ─────────────────────────────────────────────
+  //  CITY MAP STATE
+  // ─────────────────────────────────────────────
+  let leafletMap = null;
+  let leafletMarkers = [];
+
+  const CAT_COLORS = {
+    'Museum':       '#8e44ad',
+    'Restaurant':   '#e74c3c',
+    'Bar':          '#2c3e50',
+    'Café':         '#c0835a',
+    'Café / Bakery':'#c0835a',
+    'Deli / Café':  '#c0835a',
+    'Coffee':       '#c0835a',
+    'Bakery':       '#c0835a',
+    'Park':         '#27ae60',
+    'Park / Swim':  '#27ae60',
+    'Bookshop':     '#2980b9',
+    'Breakfast':    '#e67e22',
+  };
+
+  function colorForCat(cat) {
+    return CAT_COLORS[cat] || '#555';
+  }
+
+  function openCity(cityName) {
+    document.getElementById('city-page-title').textContent = cityName;
+    showPage('city');
+
+    const city = CITIES[cityName];
+
+    // Reset map
+    if (leafletMap) { leafletMap.remove(); leafletMap = null; }
+    leafletMarkers = [];
+    document.getElementById('spots-list').innerHTML = '';
+
+    // Init Leaflet with a clean, muted tile style
+    leafletMap = L.map('city-map', { zoomControl: true }).setView([city.lat, city.lon], city.zoom);
+
+    // Stadia Alidade Smooth – soft, elegant basemap
+    L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      maxZoom: 20
+    }).addTo(leafletMap);
+
+    // Build spots
+    city.spots.forEach((spot, i) => {
+      const color = colorForCat(spot.cat);
+
+      // Custom dot marker
+      const icon = L.divIcon({
+        className: '',
+        html: `<div class="spot-dot" style="background:${color};"></div>`,
+        iconSize: [14, 14],
+        iconAnchor: [7, 7],
+        popupAnchor: [0, -10]
       });
-      el.addEventListener('mouseleave', () => {
-        cursor.style.transform = 'translate(-50%,-50%) scale(1)';
-        ring.style.transform   = 'translate(-50%,-50%) scale(1)';
-        ring.style.opacity     = '0.6';
+
+      const marker = L.marker([spot.lat, spot.lon], { icon }).addTo(leafletMap);
+
+      const popupHtml = `
+        <div class="popup-name">${spot.emoji} ${spot.name}</div>
+        <div class="popup-cat">${spot.cat}</div>
+        ${spot.note ? `<div class="popup-note">${spot.note}</div>` : ''}
+      `;
+      marker.bindPopup(popupHtml, { maxWidth: 220 });
+
+      // Sidebar item
+      const item = document.createElement('div');
+      item.className = 'spot-item';
+      item.innerHTML = `
+        <span class="spot-emoji">${spot.emoji}</span>
+        <div class="spot-info">
+          <div class="spot-name">${spot.name}</div>
+          <div class="spot-cat">${spot.cat}</div>
+        </div>
+      `;
+      item.addEventListener('click', () => {
+        leafletMap.setView([spot.lat, spot.lon], 15, { animate: true });
+        marker.openPopup();
       });
+      document.getElementById('spots-list').appendChild(item);
+
+      leafletMarkers.push(marker);
     });
 
-    // Scroll reveal
-    const observer = new IntersectionObserver(entries => {
-      entries.forEach((entry, i) => {
-        if (entry.isIntersecting) {
-          setTimeout(() => {
-            entry.target.classList.add('visible');
-          }, 80);
-          observer.unobserve(entry.target);
-        }
+    // Invalidate size after page becomes visible
+    setTimeout(() => leafletMap.invalidateSize(), 80);
+  }
+
+  // ─────────────────────────────────────────────
+  //  PAGE NAVIGATION
+  // ─────────────────────────────────────────────
+  function showPage(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+    document.getElementById('page-' + id).classList.add('active');
+    if (['experiences','art','writings','readings','music'].includes(id)) {
+      document.getElementById('nav-' + id).classList.add('active');
+    }
+    if (id !== 'city') window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Refresh map if returning to city
+    if (id === 'city' && leafletMap) setTimeout(() => leafletMap.invalidateSize(), 80);
+  }
+  </script>
+
+  <!-- Globe -->
+  <script>
+  (async function () {
+    const wrap    = document.getElementById('globe-wrap');
+    const svgEl   = document.getElementById('globe-svg');
+    const tooltip = document.getElementById('map-tooltip');
+
+    const SIZE = wrap.clientWidth;
+    const R    = SIZE / 2 - 2;
+
+    const svg = d3.select(svgEl).attr('viewBox', `0 0 ${SIZE} ${SIZE}`);
+
+    const projection = d3.geoOrthographic()
+      .scale(R).translate([SIZE/2, SIZE/2])
+      .clipAngle(90).rotate([20, -20]);
+
+    const path = d3.geoPath().projection(projection);
+
+    const defs = svg.append('defs');
+    defs.append('clipPath').attr('id', 'globe-clip')
+      .append('circle').attr('cx', SIZE/2).attr('cy', SIZE/2).attr('r', R);
+
+    const grad = defs.append('radialGradient').attr('id', 'sphere-grad')
+      .attr('cx','40%').attr('cy','38%').attr('r','60%');
+    grad.append('stop').attr('offset','0%').attr('stop-color','#e8f6fc');
+    grad.append('stop').attr('offset','100%').attr('stop-color','#9ec8e0');
+
+    svg.append('circle').attr('cx',SIZE/2).attr('cy',SIZE/2).attr('r',R)
+      .attr('fill','url(#sphere-grad)');
+
+    const g = svg.append('g').attr('clip-path','url(#globe-clip)');
+
+    const graticule = d3.geoGraticule();
+    const gratPath = g.append('path').datum(graticule())
+      .attr('fill','none').attr('stroke','#a0c8df')
+      .attr('stroke-width',0.4).attr('opacity',0.6);
+
+    const world     = await d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json');
+    const countries = topojson.feature(world, world.objects.countries);
+
+    const countryPaths = g.selectAll('.country').data(countries.features).join('path')
+      .attr('class','country')
+      .attr('fill', d => d.id==250 ? '#a8d8ea' : d.id==840 ? '#ffb7c5' : '#d0e8ca')
+      .attr('stroke','#8ab88a').attr('stroke-width',0.35);
+
+    const shadeGrad = defs.append('radialGradient').attr('id','shade-grad')
+      .attr('cx','68%').attr('cy','68%').attr('r','60%');
+    shadeGrad.append('stop').attr('offset','0%').attr('stop-color','rgba(0,0,60,0.18)');
+    shadeGrad.append('stop').attr('offset','100%').attr('stop-color','rgba(0,0,0,0)');
+    g.append('circle').attr('cx',SIZE/2).attr('cy',SIZE/2).attr('r',R)
+      .attr('fill','url(#shade-grad)').style('pointer-events','none');
+
+    const sheenGrad = defs.append('radialGradient').attr('id','sheen-grad')
+      .attr('cx','32%').attr('cy','28%').attr('r','38%');
+    sheenGrad.append('stop').attr('offset','0%').attr('stop-color','rgba(255,255,255,0.28)');
+    sheenGrad.append('stop').attr('offset','100%').attr('stop-color','rgba(255,255,255,0)');
+    svg.append('circle').attr('cx',SIZE/2).attr('cy',SIZE/2).attr('r',R)
+      .attr('fill','url(#sheen-grad)').style('pointer-events','none');
+    svg.append('circle').attr('cx',SIZE/2).attr('cy',SIZE/2).attr('r',R)
+      .attr('fill','none').attr('stroke','rgba(100,140,160,0.4)').attr('stroke-width',1.2)
+      .style('pointer-events','none');
+
+    const pins = [
+      { name:'San Francisco', lat:37.7749, lon:-122.4194, type:'home' },
+      { name:'New York City', lat:40.7128, lon:-74.0060,  type:'spot' },
+      { name:'Boston',        lat:42.3601, lon:-71.0589,  type:'spot' },
+      { name:'Austin',        lat:30.2672, lon:-97.7431,  type:'spot' },
+    ];
+
+    const pulseLayer = g.append('g');
+    const dotLayer   = g.append('g');
+    const labelLayer = g.append('g');
+
+    function isVisible(lon, lat) {
+      const r = projection.rotate();
+      return d3.geoDistance([lon,lat],[-r[0],-r[1]]) < Math.PI/2;
+    }
+
+    let isDragging = false;
+
+    function drawPins() {
+      dotLayer.selectAll('*').remove();
+      labelLayer.selectAll('*').remove();
+
+      pins.forEach(pin => {
+        if (!isVisible(pin.lon, pin.lat)) return;
+        const [x,y] = projection([pin.lon, pin.lat]);
+        const isHome = pin.type === 'home';
+
+        const dot = dotLayer.append('circle')
+          .attr('cx',x).attr('cy',y)
+          .attr('r', isHome ? 6 : 5)
+          .attr('fill', isHome ? '#8e44ad' : '#c0392b')
+          .attr('stroke','white').attr('stroke-width',1.8)
+          .style('cursor','pointer');
+
+        // Hover tooltip (no rectangle - just the city name)
+        dot.on('mouseover', function(event) {
+          if (isDragging) return;
+          tooltip.style.display = 'block';
+          tooltip.textContent = pin.name;
+        })
+        .on('mousemove', function(event) {
+          tooltip.style.left = (event.clientX + 14) + 'px';
+          tooltip.style.top  = (event.clientY - 10) + 'px';
+        })
+        .on('mouseout', function() {
+          tooltip.style.display = 'none';
+        })
+        .on('click', function() {
+          if (isDragging) return;
+          tooltip.style.display = 'none';
+          openCity(pin.name);
+        });
+
+        labelLayer.append('text')
+          .attr('x',x+9).attr('y',y+4).text(pin.name)
+          .attr('font-family',"'EB Garamond',serif")
+          .attr('font-size', isHome ? '11px' : '10px')
+          .attr('font-style','italic').attr('fill','#1a1a12')
+          .attr('paint-order','stroke').attr('stroke','white').attr('stroke-width',3)
+          .style('pointer-events','none');
       });
-    }, { threshold: 0.15 });
+    }
 
-    document.querySelectorAll('.reveal, .exp-item').forEach(el => observer.observe(el));
+    setInterval(() => {
+      if (!isVisible(-122.4194, 37.7749)) return;
+      const [x,y] = projection([-122.4194, 37.7749]);
+      pulseLayer.append('circle').attr('cx',x).attr('cy',y).attr('r',6)
+        .attr('fill','none').attr('stroke','#8e44ad')
+        .attr('stroke-width',1.5).attr('opacity',0.8)
+        .transition().duration(1400)
+        .attr('r',22).attr('opacity',0).remove();
+    }, 1600);
 
-    // Stagger reveal items in same section
-    document.querySelectorAll('.work-item.reveal, .project-card.reveal, .blog-card.reveal, .skill-group.reveal').forEach((el, i) => {
-      el.style.transitionDelay = (i % 4) * 0.1 + 's';
+    function redraw() {
+      countryPaths.attr('d', path);
+      gratPath.attr('d', path(graticule()));
+      drawPins();
+    }
+    redraw();
+
+    let lastPos = null;
+    let dragDist = 0;
+
+    svg.call(d3.drag()
+      .on('start', e => { lastPos=[e.x,e.y]; dragDist=0; isDragging=false; })
+      .on('drag',  e => {
+        if (!lastPos) return;
+        const dx=e.x-lastPos[0], dy=e.y-lastPos[1];
+        dragDist += Math.sqrt(dx*dx+dy*dy);
+        if (dragDist > 3) isDragging = true;
+        const r = projection.rotate();
+        projection.rotate([r[0]+dx*0.35, r[1]-dy*0.35]);
+        lastPos=[e.x,e.y];
+        redraw();
+      })
+      .on('end', () => {
+        lastPos=null;
+        // short delay so click doesn't fire
+        setTimeout(() => { isDragging=false; }, 50);
+      })
+    );
+
+    svg.on('wheel', e => {
+      e.preventDefault();
+      projection.scale(Math.max(80, Math.min(projection.scale()-e.deltaY*0.6, SIZE*3)));
+      redraw();
     });
+  })();
   </script>
 </body>
 </html>
