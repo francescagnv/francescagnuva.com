@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Francesca Gnuva</title>
+  <script>
+    // GitHub Pages SPA redirect trick.
+    // Saves the full path to sessionStorage, then redirects to the root.
+    // index.html will read this and navigate to the correct section.
+    const path = window.location.pathname;
+    sessionStorage.setItem('redirect_path', path);
+    window.location.replace('/');
+  </script>
+</head>
+<body></body>
+</html>
