@@ -1,18 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Francesca Gnuva</title>
   <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet"/>
-  <!-- Leaflet for city maps -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { height: 100%; }
-
     body {
       background-color: #fff5f7;
       color: #1a1a12;
@@ -23,19 +20,15 @@
       display: flex;
       flex-direction: column;
     }
-
     body::before {
       content: '';
       position: fixed; inset: 0;
       background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
       pointer-events: none; z-index: 1000; opacity: 0.4;
     }
-
-    /* ── HEADER ── */
     header {
       padding: 3rem 6vw 0;
       border-bottom: 1.5px solid #1a1a12;
-      animation: fadeDown 0.7s ease both;
       flex-shrink: 0;
     }
     .header-top {
@@ -46,11 +39,11 @@
     .site-name {
       font-size: clamp(1.8rem, 4.5vw, 3.4rem);
       font-weight: 500; letter-spacing: -0.02em; line-height: 1;
-      cursor: pointer; text-decoration: none; color: inherit; background: none; border: none;
+      cursor: pointer; text-decoration: none; color: inherit;
+      background: none; border: none;
       font-family: 'EB Garamond', Georgia, serif;
     }
     .site-name em { font-style: italic; font-weight: 400; }
-
     nav { display: flex; gap: 2rem; padding-top: 0.1rem; flex-wrap: wrap; }
     nav button {
       background: none; border: none;
@@ -68,36 +61,34 @@
     nav button:hover::after { transform: scaleX(1); }
     nav button.active { opacity: 1; }
     nav button.active::after { transform: scaleX(1); }
-
-    /* ── PAGES ── */
-    .page { display: none; flex: 1; flex-direction: column; }
-    .page.active { display: flex; }
-
-    /* ── HOME / GLOBE ── */
-    #page-home { align-items: center; padding: 2.5rem 4vw 4rem; }
-    #globe-wrap {
-      width: min(600px, 86vw); aspect-ratio: 1/1;
-      animation: fadeUp 0.9s ease 0.15s both;
+    .page {
+      display: none; flex: 1; flex-direction: column;
+      opacity: 0; transition: opacity 0.35s ease;
     }
+    .page.active { display: flex; }
+    .page.visible { opacity: 1; }
+    #page-veil {
+      position: fixed; inset: 0;
+      background: #fff5f7;
+      opacity: 0; pointer-events: none;
+      z-index: 900; transition: opacity 0.25s ease;
+    }
+    #page-veil.covering { opacity: 1; pointer-events: all; }
+    #page-home { align-items: center; padding: 2.5rem 4vw 4rem; }
+    #globe-wrap { width: min(600px, 86vw); aspect-ratio: 1/1; }
     #globe-svg { width: 100%; height: 100%; cursor: grab; display: block; }
     #globe-svg:active { cursor: grabbing; }
-
     #map-tooltip {
       display: none; position: fixed;
       background: rgba(255,255,255,0.93); border: 1px solid #1a1a12;
       padding: 6px 12px; font-family: 'EB Garamond', serif;
       font-size: 0.95rem; pointer-events: none; z-index: 500;
-      transition: opacity 0.15s;
     }
-
-    /* ── INNER PAGES ── */
-    .inner-page { padding: 4rem 8vw 6rem; max-width: 860px; animation: fadeUp 0.6s ease both; }
+    .inner-page { padding: 4rem 8vw 6rem; max-width: 860px; }
     .page-title {
       font-size: clamp(2rem, 4vw, 3rem); font-weight: 400;
       font-style: italic; margin-bottom: 3rem; letter-spacing: -0.01em;
     }
-
-    /* Experience */
     .exp-entry {
       display: grid; grid-template-columns: 130px 1fr;
       gap: 0 2.5rem; padding: 1.8rem 0;
@@ -109,17 +100,12 @@
     .exp-place { font-style: italic; opacity: 0.65; font-size: 0.97rem; margin-bottom: 0.4rem; }
     .exp-desc { font-size: 0.95rem; opacity: 0.75; line-height: 1.65; }
     @media (max-width: 560px) { .exp-entry { grid-template-columns: 1fr; gap: 0.3rem 0; } }
-
-    /* Cards */
     .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.8rem; }
     .card {
       background: rgba(255,255,255,0.3); border: 1px solid rgba(26,26,18,0.15);
       padding: 1.8rem; transition: background 0.22s, transform 0.22s, box-shadow 0.22s;
     }
-    .card:hover {
-      background: rgba(255,255,255,0.55); transform: translateY(-4px);
-      box-shadow: 0 10px 28px rgba(26,26,18,0.1);
-    }
+    .card:hover { background: rgba(255,255,255,0.55); transform: translateY(-4px); box-shadow: 0 10px 28px rgba(26,26,18,0.1); }
     .card-tag { font-size: 0.75rem; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.45; margin-bottom: 0.6rem; }
     .card-title { font-size: 1.2rem; font-weight: 500; line-height: 1.3; margin-bottom: 0.5rem; }
     .card-desc { font-size: 0.93rem; font-style: italic; opacity: 0.65; line-height: 1.6; }
@@ -129,83 +115,46 @@
       text-decoration: none; border-bottom: 1px solid #1a1a12; opacity: 0.55; transition: opacity 0.2s;
     }
     .card-link:hover { opacity: 1; }
-
-    /* ── CITY PAGE ── */
     #page-city { flex-direction: column; }
-
     .city-header {
       padding: 2rem 6vw 1.5rem;
       border-bottom: 1px solid rgba(26,26,18,0.18);
       display: flex; align-items: center; gap: 1.5rem;
-      animation: fadeUp 0.5s ease both;
     }
-
     .city-back {
       background: none; border: none; cursor: pointer;
-      font-family: 'EB Garamond', serif; font-size: 0.9rem;
-      letter-spacing: 0.08em; text-transform: uppercase; font-style: italic;
+      font-family: 'Roboto Mono', monospace; font-size: 0.75rem;
       color: #1a1a12; opacity: 0.5; transition: opacity 0.2s;
-      display: flex; align-items: center; gap: 0.4rem;
     }
     .city-back:hover { opacity: 1; }
-
-    .city-title {
-      font-size: clamp(1.6rem, 3.5vw, 2.6rem); font-weight: 400;
-      font-style: italic; letter-spacing: -0.01em;
-    }
-
-    .city-layout {
-      display: flex; flex: 1; min-height: 0;
-      animation: fadeUp 0.6s ease 0.1s both;
-    }
-
-    #city-map {
-      flex: 1;
-      min-height: 520px;
-      z-index: 1;
-    }
-
+    .city-title { font-size: clamp(1.6rem, 3.5vw, 2.6rem); font-weight: 400; font-style: italic; }
+    .city-layout { display: flex; flex: 1; min-height: 0; }
+    #city-map { flex: 1; min-height: 520px; z-index: 1; }
     .city-sidebar {
       width: 280px; flex-shrink: 0;
       border-left: 1.5px solid #1a1a12;
-      display: flex; flex-direction: column;
-      overflow: hidden;
-      background: rgba(255, 245, 247, 0.8);
+      display: flex; flex-direction: column; overflow: hidden;
+      background: rgba(255,245,247,0.8);
     }
-
     .sidebar-title {
-      padding: 1.4rem 1.5rem 1rem;
-      font-size: 0.8rem; letter-spacing: 0.14em;
-      text-transform: uppercase; opacity: 0.45;
+      padding: 1.4rem 1.5rem 1rem; font-size: 0.8rem;
+      letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.45;
       border-bottom: 1px solid rgba(26,26,18,0.12);
+      font-family: 'Roboto Mono', monospace;
     }
-
-    .spots-list {
-      flex: 1; overflow-y: auto; padding: 0.5rem 0;
-    }
-
+    .spots-list { flex: 1; overflow-y: auto; padding: 0.5rem 0; }
     .spot-item {
-      padding: 0.9rem 1.5rem;
-      border-bottom: 1px solid rgba(26,26,18,0.08);
+      padding: 0.9rem 1.5rem; border-bottom: 1px solid rgba(26,26,18,0.08);
       cursor: pointer; transition: background 0.15s;
       display: flex; gap: 0.8rem; align-items: flex-start;
     }
     .spot-item:hover { background: rgba(255,255,255,0.4); }
-
     .spot-emoji { font-size: 1rem; margin-top: 0.1rem; flex-shrink: 0; }
-    .spot-info {}
     .spot-name { font-size: 1rem; font-weight: 500; line-height: 1.2; }
-    .spot-cat {
-      font-size: 0.78rem; font-style: italic; opacity: 0.5;
-      letter-spacing: 0.04em; margin-top: 0.1rem;
-    }
-
-    /* custom leaflet popup */
+    .spot-cat { font-size: 0.78rem; font-style: italic; opacity: 0.5; margin-top: 0.1rem; }
     .leaflet-popup-content-wrapper {
-      font-family: 'EB Garamond', serif !important;
-      border-radius: 0 !important;
-      border: 1px solid #1a1a12 !important;
-      box-shadow: 4px 4px 0 rgba(26,26,18,0.08) !important;
+      font-family: 'EB Garamond', serif !important; border-radius: 0 !important;
+      border: 1px solid #1a1a12 !important; box-shadow: 4px 4px 0 rgba(26,26,18,0.08) !important;
       background: rgba(255,250,245,0.97) !important;
     }
     .leaflet-popup-tip { background: rgba(255,250,245,0.97) !important; }
@@ -213,20 +162,11 @@
     .popup-name { font-weight: 500; font-size: 1.05rem; }
     .popup-cat { font-style: italic; opacity: 0.6; font-size: 0.88rem; }
     .popup-note { margin-top: 0.3rem; font-size: 0.92rem; opacity: 0.8; }
-
-    /* custom marker dot */
-    .spot-dot {
-      width: 14px; height: 14px; border-radius: 50%;
-      border: 2px solid white;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.25);
-    }
-
+    .spot-dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.25); }
     @media (max-width: 700px) {
       .city-layout { flex-direction: column; }
       .city-sidebar { width: 100%; border-left: none; border-top: 1.5px solid #1a1a12; max-height: 240px; }
     }
-
-    /* ── FOOTER ── */
     footer {
       border-top: 1.5px solid #1a1a12; padding: 1.8rem 6vw;
       display: flex; justify-content: space-between;
@@ -234,7 +174,6 @@
       flex-wrap: wrap; gap: 0.5rem; flex-shrink: 0;
     }
     footer a { color: #1a1a12; text-decoration: none; border-bottom: 1px solid currentColor; }
-
     @keyframes fadeDown { from { opacity:0; transform:translateY(-12px); } to { opacity:1; transform:translateY(0); } }
     @keyframes fadeUp   { from { opacity:0; transform:translateY(16px);  } to { opacity:1; transform:translateY(0); } }
   </style>
@@ -254,14 +193,10 @@
     </nav>
   </header>
 
-  <!-- HOME -->
-  <div id="page-home" class="page active">
-    <div id="globe-wrap">
-      <svg id="globe-svg"></svg>
-    </div>
+  <div id="page-home" class="page active visible">
+    <div id="globe-wrap"><svg id="globe-svg"></svg></div>
   </div>
 
-  <!-- EXPERIENCES -->
   <div id="page-experiences" class="page">
     <div class="inner-page">
       <h2 class="page-title">Experiences</h2>
@@ -292,7 +227,6 @@
     </div>
   </div>
 
-  <!-- ART -->
   <div id="page-art" class="page">
     <div class="inner-page">
       <h2 class="page-title">Art</h2>
@@ -319,7 +253,6 @@
     </div>
   </div>
 
-  <!-- WRITINGS -->
   <div id="page-writings" class="page">
     <div class="inner-page">
       <h2 class="page-title">Writings</h2>
@@ -346,7 +279,6 @@
     </div>
   </div>
 
-  <!-- READINGS -->
   <div id="page-readings" class="page">
     <div class="inner-page">
       <h2 class="page-title">Readings</h2>
@@ -375,7 +307,6 @@
     </div>
   </div>
 
-  <!-- MUSIC -->
   <div id="page-music" class="page">
     <div class="inner-page">
       <h2 class="page-title">Music</h2>
@@ -405,21 +336,21 @@
     </div>
   </div>
 
-  <!-- CITY PAGE -->
   <div id="page-city" class="page">
     <div class="city-header">
-      <button class="city-back" onclick="showPage('home')">← Globe</button>
+      <button class="city-back" onclick="showPage('home')">← globe</button>
       <h2 class="city-title" id="city-page-title"></h2>
     </div>
     <div class="city-layout">
       <div id="city-map"></div>
       <div class="city-sidebar">
-        <div class="sidebar-title">Favourite spots</div>
+        <div class="sidebar-title">favourite spots</div>
         <div class="spots-list" id="spots-list"></div>
       </div>
     </div>
   </div>
 
+  <div id="page-veil"></div>
   <div id="map-tooltip"></div>
 
   <footer>
@@ -427,190 +358,228 @@
     <a href="mailto:hello@francescagnuva.com">hello@francescagnuva.com</a>
   </footer>
 
-  <!-- D3 + TopoJSON -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
-
   <script>
-  // ─────────────────────────────────────────────
-  //  CITY DATA  — add / edit spots here
-  // ─────────────────────────────────────────────
-  const CITIES = {
+
+  // ── CITY DATA ──
+  var CITIES = {
     'San Francisco': {
       lat: 37.7749, lon: -122.4194, zoom: 13,
       spots: [
-        { name: 'Tartine Bakery',        cat: 'Café / Bakery',  emoji: '🥐', lat: 37.7612, lon: -122.4240, note: 'Best morning bun in the city.' },
-        { name: 'Dolores Park',          cat: 'Park',           emoji: '🌿', lat: 37.7596, lon: -122.4269, note: 'Picnics with a skyline view.' },
-        { name: 'SFMOMA',               cat: 'Museum',         emoji: '🖼', lat: 37.7857, lon: -122.4011, note: 'Essential contemporary art.' },
-        { name: 'Nopa',                  cat: 'Restaurant',     emoji: '🍽', lat: 37.7757, lon: -122.4367, note: 'Late-night wood-fired cooking.' },
-        { name: 'City Lights Bookstore', cat: 'Bookshop',       emoji: '📚', lat: 37.7979, lon: -122.4066, note: 'Beat poetry birthplace.' },
-        { name: 'Sightglass Coffee',     cat: 'Coffee',         emoji: '☕', lat: 37.7754, lon: -122.4094, note: 'Beautiful SoMa roastery.' },
+        { name: 'Tartine Bakery',        cat: 'Cafe',       emoji: '🥐', lat: 37.7612, lon: -122.4240, note: 'Best morning bun in the city.' },
+        { name: 'Dolores Park',          cat: 'Park',       emoji: '🌿', lat: 37.7596, lon: -122.4269, note: 'Picnics with a skyline view.' },
+        { name: 'SFMOMA',                cat: 'Museum',     emoji: '🖼',  lat: 37.7857, lon: -122.4011, note: 'Essential contemporary art.' },
+        { name: 'Nopa',                  cat: 'Restaurant', emoji: '🍽',  lat: 37.7757, lon: -122.4367, note: 'Late-night wood-fired cooking.' },
+        { name: 'City Lights Bookstore', cat: 'Bookshop',   emoji: '📚', lat: 37.7979, lon: -122.4066, note: 'Beat poetry birthplace.' },
+        { name: 'Sightglass Coffee',     cat: 'Coffee',     emoji: '☕', lat: 37.7754, lon: -122.4094, note: 'Beautiful SoMa roastery.' }
       ]
     },
     'New York City': {
       lat: 40.7128, lon: -74.0060, zoom: 12,
       spots: [
-        { name: 'The Met',               cat: 'Museum',         emoji: '🖼', lat: 40.7794, lon: -73.9632, note: 'A whole day, every time.' },
-        { name: 'Russ & Daughters',      cat: 'Deli / Café',    emoji: '🥯', lat: 40.7220, lon: -73.9874, note: 'Legendary Lower East Side deli.' },
-        { name: 'Prospect Park',         cat: 'Park',           emoji: '🌿', lat: 40.6602, lon: -73.9690, note: 'Brooklyn's breathing room.' },
-        { name: 'Via Carota',            cat: 'Restaurant',     emoji: '🍽', lat: 40.7333, lon: -74.0027, note: 'Perfect Italian in the West Village.' },
-        { name: 'McNally Jackson',       cat: 'Bookshop',       emoji: '📚', lat: 40.7233, lon: -73.9985, note: 'Best indie bookshop downtown.' },
-        { name: 'Attaboy',               cat: 'Bar',            emoji: '🍸', lat: 40.7216, lon: -73.9893, note: 'No-menu cocktail bar, always surprising.' },
+        { name: 'The Met',          cat: 'Museum',     emoji: '🖼',  lat: 40.7794, lon: -73.9632, note: 'A whole day, every time.' },
+        { name: 'Russ & Daughters', cat: 'Cafe',       emoji: '🥯', lat: 40.7220, lon: -73.9874, note: 'Legendary Lower East Side deli.' },
+        { name: 'Prospect Park',    cat: 'Park',       emoji: '🌿', lat: 40.6602, lon: -73.9690, note: "Brooklyn's breathing room." },
+        { name: 'Via Carota',       cat: 'Restaurant', emoji: '🍽',  lat: 40.7333, lon: -74.0027, note: 'Perfect Italian in the West Village.' },
+        { name: 'McNally Jackson',  cat: 'Bookshop',   emoji: '📚', lat: 40.7233, lon: -73.9985, note: 'Best indie bookshop downtown.' },
+        { name: 'Attaboy',          cat: 'Bar',        emoji: '🍸', lat: 40.7216, lon: -73.9893, note: 'No-menu cocktail bar, always surprising.' }
       ]
     },
     'Boston': {
       lat: 42.3601, lon: -71.0589, zoom: 13,
       spots: [
-        { name: 'Isabella Stewart Gardner Museum', cat: 'Museum', emoji: '🖼', lat: 42.3382, lon: -71.0990, note: 'The stolen paintings haunt the empty frames.' },
-        { name: 'Tatte Bakery',           cat: 'Café',           emoji: '🥐', lat: 42.3467, lon: -71.0972, note: 'Israeli-inspired, flaky and lovely.' },
-        { name: 'Arnold Arboretum',       cat: 'Park',           emoji: '🌿', lat: 42.3015, lon: -71.1254, note: 'Ancient trees, free and quiet.' },
-        { name: 'Oleana',                 cat: 'Restaurant',     emoji: '🍽', lat: 42.3650, lon: -71.1033, note: 'Ana Sortun's Eastern Mediterranean cooking.' },
-        { name: 'Trident Booksellers',   cat: 'Bookshop',       emoji: '📚', lat: 42.3497, lon: -71.0827, note: 'Cozy Back Bay books and coffee.' },
-        { name: 'Drink',                  cat: 'Bar',            emoji: '🍸', lat: 42.3485, lon: -71.0480, note: 'Fort Point cocktail institution.' },
+        { name: 'Isabella Stewart Gardner Museum', cat: 'Museum',     emoji: '🖼',  lat: 42.3382, lon: -71.0990, note: 'The stolen paintings haunt the empty frames.' },
+        { name: 'Tatte Bakery',                    cat: 'Cafe',       emoji: '🥐', lat: 42.3467, lon: -71.0972, note: 'Israeli-inspired, flaky and lovely.' },
+        { name: 'Arnold Arboretum',                cat: 'Park',       emoji: '🌿', lat: 42.3015, lon: -71.1254, note: 'Ancient trees, free and quiet.' },
+        { name: 'Oleana',                          cat: 'Restaurant', emoji: '🍽',  lat: 42.3650, lon: -71.1033, note: "Ana Sortun's Eastern Mediterranean cooking." },
+        { name: 'Trident Booksellers',             cat: 'Bookshop',   emoji: '📚', lat: 42.3497, lon: -71.0827, note: 'Cozy Back Bay books and coffee.' },
+        { name: 'Drink',                           cat: 'Bar',        emoji: '🍸', lat: 42.3485, lon: -71.0480, note: 'Fort Point cocktail institution.' }
       ]
     },
     'Austin': {
       lat: 30.2672, lon: -97.7431, zoom: 12,
       spots: [
-        { name: 'Blanton Museum of Art',  cat: 'Museum',         emoji: '🖼', lat: 30.2823, lon: -97.7393, note: 'Ellsworth Kelly chapel alone is worth it.' },
-        { name: 'Barton Springs Pool',    cat: 'Park / Swim',    emoji: '🌿', lat: 30.2635, lon: -97.7720, note: 'Cold spring-fed swim in the heat.' },
-        { name: 'Uchi',                   cat: 'Restaurant',     emoji: '🍽', lat: 30.2594, lon: -97.7584, note: 'Japanese-Texas fusion, exceptional.' },
-        { name: 'BookPeople',             cat: 'Bookshop',       emoji: '📚', lat: 30.2798, lon: -97.7499, note: 'Austin's beloved indie bookstore.' },
-        { name: 'Whisler\'s',             cat: 'Bar',            emoji: '🍸', lat: 30.2632, lon: -97.7237, note: 'Mezcal bar with a rooftop mezcaleria.' },
-        { name: 'Juan In A Million',      cat: 'Breakfast',      emoji: '🌮', lat: 30.2639, lon: -97.7172, note: 'Don Juan taco, a local legend.' },
+        { name: 'Blanton Museum of Art', cat: 'Museum',     emoji: '🖼',  lat: 30.2823, lon: -97.7393, note: 'Ellsworth Kelly chapel alone is worth it.' },
+        { name: 'Barton Springs Pool',   cat: 'Park',       emoji: '🌿', lat: 30.2635, lon: -97.7720, note: 'Cold spring-fed swim in the heat.' },
+        { name: 'Uchi',                  cat: 'Restaurant', emoji: '🍽',  lat: 30.2594, lon: -97.7584, note: 'Japanese-Texas fusion, exceptional.' },
+        { name: 'BookPeople',            cat: 'Bookshop',   emoji: '📚', lat: 30.2798, lon: -97.7499, note: "Austin's beloved indie bookstore." },
+        { name: "Whisler's",             cat: 'Bar',        emoji: '🍸', lat: 30.2632, lon: -97.7237, note: 'Mezcal bar with a rooftop mezcaleria.' },
+        { name: 'Juan In A Million',     cat: 'Breakfast',  emoji: '🌮', lat: 30.2639, lon: -97.7172, note: 'Don Juan taco, a local legend.' }
       ]
-    },
+    }
   };
 
-  // ─────────────────────────────────────────────
-  //  CITY MAP STATE
-  // ─────────────────────────────────────────────
-  let leafletMap = null;
-  let leafletMarkers = [];
-
-  const CAT_COLORS = {
-    'Museum':       '#8e44ad',
-    'Restaurant':   '#e74c3c',
-    'Bar':          '#2c3e50',
-    'Café':         '#c0835a',
-    'Café / Bakery':'#c0835a',
-    'Deli / Café':  '#c0835a',
-    'Coffee':       '#c0835a',
-    'Bakery':       '#c0835a',
-    'Park':         '#27ae60',
-    'Park / Swim':  '#27ae60',
-    'Bookshop':     '#2980b9',
-    'Breakfast':    '#e67e22',
+  var CAT_COLORS = {
+    'Museum': '#8e44ad', 'Restaurant': '#e74c3c', 'Bar': '#2c3e50',
+    'Cafe': '#c0835a', 'Coffee': '#c0835a', 'Bakery': '#c0835a',
+    'Park': '#27ae60', 'Bookshop': '#2980b9', 'Breakfast': '#e67e22'
   };
+  function colorForCat(cat) { return CAT_COLORS[cat] || '#555'; }
 
-  function colorForCat(cat) {
-    return CAT_COLORS[cat] || '#555';
-  }
+  var leafletMap = null;
+  var NAV_PAGES = ['experiences', 'art', 'writings', 'readings', 'music'];
 
-  function openCity(cityName) {
-    document.getElementById('city-page-title').textContent = cityName;
-    showPage('city');
-
-    const city = CITIES[cityName];
-
-    // Reset map
+  // ── BUILD CITY MAP ──
+  function buildCityMap(cityName) {
+    var city = CITIES[cityName];
+    if (!city) return;
     if (leafletMap) { leafletMap.remove(); leafletMap = null; }
-    leafletMarkers = [];
     document.getElementById('spots-list').innerHTML = '';
 
-    // Init Leaflet with a clean, muted tile style
     leafletMap = L.map('city-map', { zoomControl: true }).setView([city.lat, city.lon], city.zoom);
-
-    // Stadia Alidade Smooth – soft, elegant basemap
     L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a> &copy; OpenStreetMap contributors',
       maxZoom: 20
     }).addTo(leafletMap);
 
-    // Build spots
-    city.spots.forEach((spot, i) => {
-      const color = colorForCat(spot.cat);
-
-      // Custom dot marker
-      const icon = L.divIcon({
+    city.spots.forEach(function(spot) {
+      var color = colorForCat(spot.cat);
+      var icon = L.divIcon({
         className: '',
-        html: `<div class="spot-dot" style="background:${color};"></div>`,
-        iconSize: [14, 14],
-        iconAnchor: [7, 7],
-        popupAnchor: [0, -10]
+        html: '<div class="spot-dot" style="background:' + color + ';"></div>',
+        iconSize: [14, 14], iconAnchor: [7, 7], popupAnchor: [0, -10]
       });
-
-      const marker = L.marker([spot.lat, spot.lon], { icon }).addTo(leafletMap);
-
-      const popupHtml = `
-        <div class="popup-name">${spot.emoji} ${spot.name}</div>
-        <div class="popup-cat">${spot.cat}</div>
-        ${spot.note ? `<div class="popup-note">${spot.note}</div>` : ''}
-      `;
-      marker.bindPopup(popupHtml, { maxWidth: 220 });
-
-      // Sidebar item
-      const item = document.createElement('div');
+      var marker = L.marker([spot.lat, spot.lon], { icon: icon }).addTo(leafletMap);
+      marker.bindPopup(
+        '<div class="popup-name">' + spot.emoji + ' ' + spot.name + '</div>' +
+        '<div class="popup-cat">' + spot.cat + '</div>' +
+        (spot.note ? '<div class="popup-note">' + spot.note + '</div>' : ''),
+        { maxWidth: 220 }
+      );
+      var item = document.createElement('div');
       item.className = 'spot-item';
-      item.innerHTML = `
-        <span class="spot-emoji">${spot.emoji}</span>
-        <div class="spot-info">
-          <div class="spot-name">${spot.name}</div>
-          <div class="spot-cat">${spot.cat}</div>
-        </div>
-      `;
-      item.addEventListener('click', () => {
-        leafletMap.setView([spot.lat, spot.lon], 15, { animate: true });
-        marker.openPopup();
-      });
+      item.innerHTML =
+        '<span class="spot-emoji">' + spot.emoji + '</span>' +
+        '<div class="spot-info"><div class="spot-name">' + spot.name + '</div>' +
+        '<div class="spot-cat">' + spot.cat + '</div></div>';
+      (function(m, s) {
+        item.addEventListener('click', function() {
+          leafletMap.setView([s.lat, s.lon], 15, { animate: true });
+          m.openPopup();
+        });
+      })(marker, spot);
       document.getElementById('spots-list').appendChild(item);
-
-      leafletMarkers.push(marker);
     });
-
-    // Invalidate size after page becomes visible
-    setTimeout(() => leafletMap.invalidateSize(), 80);
+    setTimeout(function() { leafletMap.invalidateSize(); }, 100);
   }
 
-  // ─────────────────────────────────────────────
-  //  PAGE NAVIGATION
-  // ─────────────────────────────────────────────
-  function showPage(id) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  // ── TRANSITION ENGINE ──
+  function transitionTo(fn) {
+    var veil = document.getElementById('page-veil');
+    veil.classList.add('covering');
+    setTimeout(function() {
+      fn();
+      requestAnimationFrame(function() {
+        veil.classList.remove('covering');
+        requestAnimationFrame(function() {
+          var next = document.querySelector('.page.active');
+          if (next) next.classList.add('visible');
+        });
+      });
+    }, 270);
+  }
+
+  function activatePage(id) {
+    document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active', 'visible'); });
+    document.querySelectorAll('nav button').forEach(function(b) { b.classList.remove('active'); });
     document.getElementById('page-' + id).classList.add('active');
-    if (['experiences','art','writings','readings','music'].includes(id)) {
+    if (NAV_PAGES.indexOf(id) !== -1) {
       document.getElementById('nav-' + id).classList.add('active');
     }
-    if (id !== 'city') window.scrollTo({ top: 0, behavior: 'smooth' });
-    // Refresh map if returning to city
-    if (id === 'city' && leafletMap) setTimeout(() => leafletMap.invalidateSize(), 80);
+    window.scrollTo({ top: 0, behavior: 'instant' });
   }
+
+  // ── PUBLIC showPage ──
+  function showPage(id, pushState) {
+    if (pushState !== false) {
+      history.pushState({ page: id }, '', id === 'home' ? '/' : '/' + id);
+    }
+    transitionTo(function() { activatePage(id); });
+  }
+
+  // ── PUBLIC openCity ──
+  function openCity(cityName, pushState) {
+    if (pushState !== false) {
+      history.pushState({ page: 'city', city: cityName }, '', '/city/' + encodeURIComponent(cityName));
+    }
+    transitionTo(function() {
+      activatePage('city');
+      document.getElementById('city-page-title').textContent = cityName;
+      buildCityMap(cityName);
+    });
+  }
+
+  // ── POPSTATE (back/forward) ──
+  window.addEventListener('popstate', function(e) {
+    var state = e.state;
+    if (!state) { showPage('home', false); return; }
+    if (state.page === 'city' && state.city) {
+      openCity(state.city, false);
+    } else {
+      showPage(state.page || 'home', false);
+    }
+  });
+
+  // ── INIT ROUTING ──
+  // 404.html encodes path as ?p=experiences and redirects to /
+  // We decode it here and navigate to the right page instantly (no transition on first load)
+  (function initRoute() {
+    var params = new URLSearchParams(window.location.search);
+    var p = params.get('p');
+    var path;
+
+    if (p) {
+      path = decodeURIComponent(p).replace(/^\//, '').replace(/\/$/, '') || 'home';
+      history.replaceState(null, '', path === 'home' ? '/' : '/' + path);
+    } else {
+      path = window.location.pathname.replace(/^\//, '').replace(/\/$/, '') || 'home';
+    }
+
+    if (path.indexOf('city/') === 0) {
+      var cityName = decodeURIComponent(path.replace('city/', ''));
+      if (CITIES[cityName]) {
+        history.replaceState({ page: 'city', city: cityName }, '', '/city/' + encodeURIComponent(cityName));
+        activatePage('city');
+        document.getElementById('city-page-title').textContent = cityName;
+        document.getElementById('page-city').classList.add('visible');
+        buildCityMap(cityName);
+        return;
+      }
+    }
+
+    var id = NAV_PAGES.indexOf(path) !== -1 ? path : 'home';
+    history.replaceState({ page: id }, '', id === 'home' ? '/' : '/' + id);
+    if (id !== 'home') {
+      activatePage(id);
+      document.getElementById('page-' + id).classList.add('visible');
+    }
+  })();
+
   </script>
 
   <!-- Globe -->
   <script>
-  (async function () {
-    const wrap    = document.getElementById('globe-wrap');
-    const svgEl   = document.getElementById('globe-svg');
-    const tooltip = document.getElementById('map-tooltip');
+  (async function() {
+    var wrap   = document.getElementById('globe-wrap');
+    var svgEl  = document.getElementById('globe-svg');
+    var tooltip = document.getElementById('map-tooltip');
+    var SIZE = wrap.clientWidth;
+    var R    = SIZE / 2 - 2;
 
-    const SIZE = wrap.clientWidth;
-    const R    = SIZE / 2 - 2;
+    var svg = d3.select(svgEl).attr('viewBox', '0 0 ' + SIZE + ' ' + SIZE);
 
-    const svg = d3.select(svgEl).attr('viewBox', `0 0 ${SIZE} ${SIZE}`);
-
-    const projection = d3.geoOrthographic()
+    var projection = d3.geoOrthographic()
       .scale(R).translate([SIZE/2, SIZE/2])
       .clipAngle(90).rotate([20, -20]);
 
-    const path = d3.geoPath().projection(projection);
+    var path = d3.geoPath().projection(projection);
 
-    const defs = svg.append('defs');
+    var defs = svg.append('defs');
     defs.append('clipPath').attr('id', 'globe-clip')
       .append('circle').attr('cx', SIZE/2).attr('cy', SIZE/2).attr('r', R);
 
-    const grad = defs.append('radialGradient').attr('id', 'sphere-grad')
+    var grad = defs.append('radialGradient').attr('id', 'sphere-grad')
       .attr('cx','40%').attr('cy','38%').attr('r','60%');
     grad.append('stop').attr('offset','0%').attr('stop-color','#e8f6fc');
     grad.append('stop').attr('offset','100%').attr('stop-color','#9ec8e0');
@@ -618,29 +587,29 @@
     svg.append('circle').attr('cx',SIZE/2).attr('cy',SIZE/2).attr('r',R)
       .attr('fill','url(#sphere-grad)');
 
-    const g = svg.append('g').attr('clip-path','url(#globe-clip)');
+    var g = svg.append('g').attr('clip-path','url(#globe-clip)');
 
-    const graticule = d3.geoGraticule();
-    const gratPath = g.append('path').datum(graticule())
+    var graticule = d3.geoGraticule();
+    var gratPath = g.append('path').datum(graticule())
       .attr('fill','none').attr('stroke','#a0c8df')
       .attr('stroke-width',0.4).attr('opacity',0.6);
 
-    const world     = await d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json');
-    const countries = topojson.feature(world, world.objects.countries);
+    var world = await d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json');
+    var countries = topojson.feature(world, world.objects.countries);
 
-    const countryPaths = g.selectAll('.country').data(countries.features).join('path')
+    var countryPaths = g.selectAll('.country').data(countries.features).join('path')
       .attr('class','country')
-      .attr('fill', d => d.id==250 ? '#a8d8ea' : d.id==840 ? '#ffb7c5' : '#d0e8ca')
+      .attr('fill', function(d) { return d.id==250 ? '#a8d8ea' : d.id==840 ? '#ffb7c5' : '#d0e8ca'; })
       .attr('stroke','#8ab88a').attr('stroke-width',0.35);
 
-    const shadeGrad = defs.append('radialGradient').attr('id','shade-grad')
+    var shadeGrad = defs.append('radialGradient').attr('id','shade-grad')
       .attr('cx','68%').attr('cy','68%').attr('r','60%');
     shadeGrad.append('stop').attr('offset','0%').attr('stop-color','rgba(0,0,60,0.18)');
     shadeGrad.append('stop').attr('offset','100%').attr('stop-color','rgba(0,0,0,0)');
     g.append('circle').attr('cx',SIZE/2).attr('cy',SIZE/2).attr('r',R)
       .attr('fill','url(#shade-grad)').style('pointer-events','none');
 
-    const sheenGrad = defs.append('radialGradient').attr('id','sheen-grad')
+    var sheenGrad = defs.append('radialGradient').attr('id','sheen-grad')
       .attr('cx','32%').attr('cy','28%').attr('r','38%');
     sheenGrad.append('stop').attr('offset','0%').attr('stop-color','rgba(255,255,255,0.28)');
     sheenGrad.append('stop').attr('offset','100%').attr('stop-color','rgba(255,255,255,0)');
@@ -650,59 +619,54 @@
       .attr('fill','none').attr('stroke','rgba(100,140,160,0.4)').attr('stroke-width',1.2)
       .style('pointer-events','none');
 
-    const pins = [
+    var pins = [
       { name:'San Francisco', lat:37.7749, lon:-122.4194, type:'home' },
       { name:'New York City', lat:40.7128, lon:-74.0060,  type:'spot' },
       { name:'Boston',        lat:42.3601, lon:-71.0589,  type:'spot' },
-      { name:'Austin',        lat:30.2672, lon:-97.7431,  type:'spot' },
+      { name:'Austin',        lat:30.2672, lon:-97.7431,  type:'spot' }
     ];
 
-    const pulseLayer = g.append('g');
-    const dotLayer   = g.append('g');
-    const labelLayer = g.append('g');
+    var pulseLayer = g.append('g');
+    var dotLayer   = g.append('g');
+    var labelLayer = g.append('g');
+    var isDragging = false;
 
     function isVisible(lon, lat) {
-      const r = projection.rotate();
+      var r = projection.rotate();
       return d3.geoDistance([lon,lat],[-r[0],-r[1]]) < Math.PI/2;
     }
-
-    let isDragging = false;
 
     function drawPins() {
       dotLayer.selectAll('*').remove();
       labelLayer.selectAll('*').remove();
-
-      pins.forEach(pin => {
+      pins.forEach(function(pin) {
         if (!isVisible(pin.lon, pin.lat)) return;
-        const [x,y] = projection([pin.lon, pin.lat]);
-        const isHome = pin.type === 'home';
-
-        const dot = dotLayer.append('circle')
+        var coords = projection([pin.lon, pin.lat]);
+        var x = coords[0], y = coords[1];
+        var isHome = pin.type === 'home';
+        var dot = dotLayer.append('circle')
           .attr('cx',x).attr('cy',y)
           .attr('r', isHome ? 6 : 5)
           .attr('fill', isHome ? '#8e44ad' : '#c0392b')
           .attr('stroke','white').attr('stroke-width',1.8)
           .style('cursor','pointer');
-
-        // Hover tooltip (no rectangle - just the city name)
-        dot.on('mouseover', function(event) {
-          if (isDragging) return;
-          tooltip.style.display = 'block';
-          tooltip.textContent = pin.name;
-        })
-        .on('mousemove', function(event) {
-          tooltip.style.left = (event.clientX + 14) + 'px';
-          tooltip.style.top  = (event.clientY - 10) + 'px';
-        })
-        .on('mouseout', function() {
-          tooltip.style.display = 'none';
-        })
-        .on('click', function() {
-          if (isDragging) return;
-          tooltip.style.display = 'none';
-          openCity(pin.name);
-        });
-
+        (function(p) {
+          dot.on('mouseover', function(evt) {
+            if (isDragging) return;
+            tooltip.style.display = 'block';
+            tooltip.textContent = p.name;
+          })
+          .on('mousemove', function(evt) {
+            tooltip.style.left = (evt.clientX + 14) + 'px';
+            tooltip.style.top  = (evt.clientY - 10) + 'px';
+          })
+          .on('mouseout', function() { tooltip.style.display = 'none'; })
+          .on('click', function() {
+            if (isDragging) return;
+            tooltip.style.display = 'none';
+            openCity(p.name);
+          });
+        })(pin);
         labelLayer.append('text')
           .attr('x',x+9).attr('y',y+4).text(pin.name)
           .attr('font-family',"'EB Garamond',serif")
@@ -713,14 +677,13 @@
       });
     }
 
-    setInterval(() => {
+    setInterval(function() {
       if (!isVisible(-122.4194, 37.7749)) return;
-      const [x,y] = projection([-122.4194, 37.7749]);
-      pulseLayer.append('circle').attr('cx',x).attr('cy',y).attr('r',6)
+      var c = projection([-122.4194, 37.7749]);
+      pulseLayer.append('circle').attr('cx',c[0]).attr('cy',c[1]).attr('r',6)
         .attr('fill','none').attr('stroke','#8e44ad')
         .attr('stroke-width',1.5).attr('opacity',0.8)
-        .transition().duration(1400)
-        .attr('r',22).attr('opacity',0).remove();
+        .transition().duration(1400).attr('r',22).attr('opacity',0).remove();
     }, 1600);
 
     function redraw() {
@@ -730,29 +693,26 @@
     }
     redraw();
 
-    let lastPos = null;
-    let dragDist = 0;
-
+    var lastPos = null, dragDist = 0;
     svg.call(d3.drag()
-      .on('start', e => { lastPos=[e.x,e.y]; dragDist=0; isDragging=false; })
-      .on('drag',  e => {
+      .on('start', function(e) { lastPos=[e.x,e.y]; dragDist=0; isDragging=false; })
+      .on('drag',  function(e) {
         if (!lastPos) return;
-        const dx=e.x-lastPos[0], dy=e.y-lastPos[1];
+        var dx=e.x-lastPos[0], dy=e.y-lastPos[1];
         dragDist += Math.sqrt(dx*dx+dy*dy);
         if (dragDist > 3) isDragging = true;
-        const r = projection.rotate();
+        var r = projection.rotate();
         projection.rotate([r[0]+dx*0.35, r[1]-dy*0.35]);
         lastPos=[e.x,e.y];
         redraw();
       })
-      .on('end', () => {
+      .on('end', function() {
         lastPos=null;
-        // short delay so click doesn't fire
-        setTimeout(() => { isDragging=false; }, 50);
+        setTimeout(function() { isDragging=false; }, 50);
       })
     );
 
-    svg.on('wheel', e => {
+    svg.on('wheel', function(e) {
       e.preventDefault();
       projection.scale(Math.max(80, Math.min(projection.scale()-e.deltaY*0.6, SIZE*3)));
       redraw();
