@@ -32,7 +32,6 @@
     #globe-svg:active{cursor:grabbing}
     #map-tooltip{display:none;position:fixed;background:rgba(255,255,255,.93);border:1px solid #1a1a12;padding:6px 12px;font-family:"EB Garamond",serif;font-size:.95rem;pointer-events:none;z-index:500}
     .inner-page{padding:4rem 8vw 6rem;max-width:860px}
-    .page-title{font-size:clamp(2rem,4vw,3rem);font-weight:400;font-style:italic;margin-bottom:3rem;letter-spacing:-.01em}
     .card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.8rem}
     .card{background:rgba(255,255,255,.3);border:1px solid rgba(26,26,18,.15);padding:1.8rem;transition:background .22s,transform .22s,box-shadow .22s}
     .card:hover{background:rgba(255,255,255,.55);transform:translateY(-4px);box-shadow:0 10px 28px rgba(26,26,18,.1)}
@@ -41,6 +40,12 @@
     .card-desc{font-size:.93rem;font-style:italic;opacity:.65;line-height:1.6}
     .card-link{display:inline-block;margin-top:1rem;font-size:.82rem;letter-spacing:.08em;text-transform:uppercase;color:#1a1a12;text-decoration:none;border-bottom:1px solid #1a1a12;opacity:.55;transition:opacity .2s}
     .card-link:hover{opacity:1}
+    .art-item{display:flex;gap:3rem;align-items:flex-start;margin-bottom:4rem}
+    .art-item img{width:min(340px,55vw);flex-shrink:0;display:block}
+    .art-meta{padding-top:.4rem}
+    .art-title{font-size:1.15rem;font-style:italic;margin-bottom:.3rem}
+    .art-date{font-family:"Roboto Mono",monospace;font-size:.72rem;letter-spacing:.08em;opacity:.45}
+    @media(max-width:600px){.art-item{flex-direction:column;gap:1.2rem}.art-item img{width:100%}}
     #page-city{flex-direction:column}
     .city-header{padding:2rem 6vw 1.5rem;border-bottom:1px solid rgba(26,26,18,.18);display:flex;align-items:center;gap:1.5rem}
     .city-back{background:none;border:none;cursor:pointer;font-family:"Roboto Mono",monospace;font-size:.75rem;color:#1a1a12;opacity:.5;transition:opacity .2s}
@@ -74,7 +79,7 @@
       <button class="site-name" onclick="showPage('home')">Francesca <em>Gnuva</em></button>
     </div>
     <nav>
-      <button id="nav-experiences" onclick="showPage('experiences')">experiences</button>
+      <button id="nav-experiences" onclick="showPage('experiences')">experience</button>
       <button id="nav-art" onclick="showPage('art')">art</button>
       <button id="nav-writings" onclick="showPage('writings')">writings</button>
       <button id="nav-readings" onclick="showPage('readings')">readings</button>
@@ -88,32 +93,24 @@
 
   <div id="page-experiences" class="page">
     <div class="inner-page">
-      <h2 class="page-title">Experience</h2>
       <p style="max-width:600px;line-height:1.85;font-size:1.05rem;">I was born and raised in Nice, in the south of France. Growing up, I was always a &ldquo;serial generalist:&rdquo; obsessed with math and physics but also philosophy and the arts. I skied competitively and sketched in my free time. After graduating from high school, I attended Columbia, where I majored in applied mathematics and also spent a lot of time in the history and visual arts departments. I worked in finance for a little over three years (IB at Rothschild &amp; Co in NYC / PE at TA Associates in Boston, where I sourced and conducted diligence for our investment in Kline Hill Partners). I transitioned into tech when I began investing at Hummingbird in 2025; I more recently joined Audacious Ventures&rsquo; investment team in SF.</p>
     </div>
   </div>
 
   <div id="page-art" class="page">
     <div class="inner-page">
-      <h2 class="page-title">Art</h2>
-      <div class="card-grid">
-        <div class="card" style="padding:0;overflow:hidden;">
-          <img src="roger.jpeg" style="width:100%;display:block;aspect-ratio:1/1;object-fit:cover;"/>
-          <div style="padding:1.4rem 1.6rem 1.6rem;">
-            <div class="card-tag">April 2022 &middot; NYC</div>
-            <div class="card-title"><em>Roger</em></div>
-          </div>
+      <div class="art-item">
+        <img src="roger.jpeg" alt="Roger"/>
+        <div class="art-meta">
+          <div class="art-title"><em>Roger</em></div>
+          <div class="art-date">April 2022 &middot; NYC</div>
         </div>
-        <div class="card"><div class="card-tag">Series - 2024</div><div class="card-title">Work or Series Title</div><div class="card-desc">Medium, materials, or a brief note about the concept.</div><a class="card-link" href="#">View</a></div>
-        <div class="card"><div class="card-tag">Installation - 2023</div><div class="card-title">Another Work</div><div class="card-desc">Medium, materials, or a brief note about the concept.</div><a class="card-link" href="#">View</a></div>
-        <div class="card"><div class="card-tag">Drawing - 2022</div><div class="card-title">Ongoing Practice</div><div class="card-desc">Medium, materials, or a brief note about the concept.</div><a class="card-link" href="#">View</a></div>
       </div>
     </div>
   </div>
 
   <div id="page-writings" class="page">
     <div class="inner-page">
-      <h2 class="page-title">Writings</h2>
       <div class="card-grid">
         <div class="card"><div class="card-tag">Essay - 2024</div><div class="card-title">Essay or Article Title</div><div class="card-desc">Published in - a brief note about the argument or subject.</div><a class="card-link" href="#">Read</a></div>
         <div class="card"><div class="card-tag">Essay - 2023</div><div class="card-title">Another Writing</div><div class="card-desc">Published in - a brief note about the argument or subject.</div><a class="card-link" href="#">Read</a></div>
@@ -124,7 +121,6 @@
 
   <div id="page-readings" class="page">
     <div class="inner-page">
-      <h2 class="page-title">Readings</h2>
       <div class="card-grid">
         <div class="card"><div class="card-tag">Novel - Fiction</div><div class="card-title">Book Title</div><div class="card-desc">Author - a brief note on why this book matters to you.</div></div>
         <div class="card"><div class="card-tag">Non-fiction - Philosophy</div><div class="card-title">Another Title</div><div class="card-desc">Author - a brief note on why this book matters to you.</div></div>
@@ -136,7 +132,6 @@
 
   <div id="page-music" class="page">
     <div class="inner-page">
-      <h2 class="page-title">Music</h2>
       <div class="card-grid">
         <div class="card"><div class="card-tag">Album</div><div class="card-title">Album Title</div><div class="card-desc">Artist - a brief note on what this record means to you.</div></div>
         <div class="card"><div class="card-tag">Album</div><div class="card-title">Another Album</div><div class="card-desc">Artist - a brief note on what this record means to you.</div></div>
