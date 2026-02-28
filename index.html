@@ -33,13 +33,6 @@
     #map-tooltip{display:none;position:fixed;background:rgba(255,255,255,.93);border:1px solid #1a1a12;padding:6px 12px;font-family:"EB Garamond",serif;font-size:.95rem;pointer-events:none;z-index:500}
     .inner-page{padding:4rem 8vw 6rem;max-width:860px}
     .page-title{font-size:clamp(2rem,4vw,3rem);font-weight:400;font-style:italic;margin-bottom:3rem;letter-spacing:-.01em}
-    .exp-entry{display:grid;grid-template-columns:130px 1fr;gap:0 2.5rem;padding:1.8rem 0;border-top:1px solid rgba(26,26,18,.18)}
-    .exp-entry:last-child{border-bottom:1px solid rgba(26,26,18,.18)}
-    .exp-year{font-size:.85rem;font-style:italic;opacity:.5;padding-top:.15rem}
-    .exp-role{font-size:1.1rem;font-weight:500;margin-bottom:.2rem}
-    .exp-place{font-style:italic;opacity:.65;font-size:.97rem;margin-bottom:.4rem}
-    .exp-desc{font-size:.95rem;opacity:.75;line-height:1.65}
-    @media(max-width:560px){.exp-entry{grid-template-columns:1fr;gap:.3rem 0}}
     .card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.8rem}
     .card{background:rgba(255,255,255,.3);border:1px solid rgba(26,26,18,.15);padding:1.8rem;transition:background .22s,transform .22s,box-shadow .22s}
     .card:hover{background:rgba(255,255,255,.55);transform:translateY(-4px);box-shadow:0 10px 28px rgba(26,26,18,.1)}
@@ -73,8 +66,6 @@
     @media(max-width:700px){.city-layout{flex-direction:column}.city-sidebar{width:100%;border-left:none;border-top:1.5px solid #1a1a12;max-height:240px}}
     footer{border-top:1.5px solid #1a1a12;padding:1.8rem 6vw;display:flex;justify-content:space-between;font-size:.85rem;font-style:italic;opacity:.5;flex-wrap:wrap;gap:.5rem;flex-shrink:0}
     footer a{color:#1a1a12;text-decoration:none;border-bottom:1px solid currentColor}
-    @keyframes fadeDown{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
-    @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
   </style>
 </head>
 <body>
@@ -98,18 +89,7 @@
   <div id="page-experiences" class="page">
     <div class="inner-page">
       <h2 class="page-title">Experiences</h2>
-      <div class="exp-entry">
-        <div class="exp-year">2024 - present</div>
-        <div><div class="exp-role">Role / Position</div><div class="exp-place">Organisation or Company</div><div class="exp-desc">A short description of what you do or did here.</div></div>
-      </div>
-      <div class="exp-entry">
-        <div class="exp-year">2023</div>
-        <div><div class="exp-role">Role / Position</div><div class="exp-place">Organisation or Company</div><div class="exp-desc">A short description of what you do or did here.</div></div>
-      </div>
-      <div class="exp-entry">
-        <div class="exp-year">2022</div>
-        <div><div class="exp-role">Role / Position</div><div class="exp-place">Organisation or Company</div><div class="exp-desc">A short description of what you do or did here.</div></div>
-      </div>
+      <p style="max-width:600px;line-height:1.85;font-size:1.05rem;">I was born and raised in Nice, in the south of France. Growing up, I was always a &ldquo;serial generalist:&rdquo; obsessed with math and physics but also philosophy and the arts. I skied competitively and sketched in my free time. After graduating from high school, I attended Columbia, where I majored in applied mathematics and also spent a lot of time in the history and visual arts departments. I worked in finance for a little over three years (IB at Rothschild &amp; Co in NYC / PE at TA Associates in Boston, where I sourced and conducted diligence for our investment in Kline Hill Partners). I transitioned into tech when I joined Hummingbird in 2025 and more recently joined Audacious Ventures&rsquo; investment team in SF.</p>
     </div>
   </div>
 
