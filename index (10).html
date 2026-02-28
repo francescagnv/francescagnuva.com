@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Francesca Gnuva</title>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%}
+    body{background:#fff5f7;color:#1a1a12;font-family:"EB Garamond",Georgia,serif;font-size:18px;line-height:1.6;min-height:100vh;display:flex;flex-direction:column}
+    body::before{content:"";position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:1000;opacity:.4}
+    header{padding:3rem 6vw 0;border-bottom:1.5px solid #1a1a12;flex-shrink:0}
+    .header-top{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:1rem;padding-bottom:1.2rem}
+    .site-name{font-size:clamp(1.8rem,4.5vw,3.4rem);font-weight:500;letter-spacing:-.02em;line-height:1;cursor:pointer;color:inherit;background:none;border:none;font-family:"EB Garamond",Georgia,serif}
+    .site-name em{font-style:italic;font-weight:400}
+    nav{display:flex;gap:2rem;padding-top:.1rem;flex-wrap:wrap}
+    nav button{background:none;border:none;font-family:"Roboto Mono",monospace;font-size:.75rem;letter-spacing:.03em;text-transform:lowercase;color:#1a1a12;cursor:pointer;padding:.65rem 0;position:relative;opacity:.55;transition:opacity .2s}
+    nav button::after{content:"";position:absolute;bottom:0;left:0;right:0;height:2px;background:#1a1a12;transform:scaleX(0);transform-origin:left;transition:transform .22s ease}
+    nav button:hover,nav button.active{opacity:1}
+    nav button:hover::after,nav button.active::after{transform:scaleX(1)}
+    .page{display:none;flex:1;flex-direction:column;opacity:0;transition:opacity .35s ease}
+    .page.active{display:flex}
+    .page.visible{opacity:1}
+    #page-veil{position:fixed;inset:0;background:#fff5f7;opacity:0;pointer-events:none;z-index:900;transition:opacity .25s ease}
+    #page-veil.covering{opacity:1;pointer-events:all}
+    #page-home{align-items:center;padding:2.5rem 4vw 4rem}
+    #globe-wrap{width:min(600px,86vw);aspect-ratio:1/1}
+    #globe-svg{width:100%;height:100%;cursor:grab;display:block}
+    #globe-svg:active{cursor:grabbing}
+    #map-tooltip{display:none;position:fixed;background:rgba(255,255,255,.93);border:1px solid #1a1a12;padding:6px 12px;font-family:"EB Garamond",serif;font-size:.95rem;pointer-events:none;z-index:500}
+    .inner-page{padding:4rem 8vw 6rem;max-width:860px}
+    .page-title{font-size:clamp(2rem,4vw,3rem);font-weight:400;font-style:italic;margin-bottom:3rem;letter-spacing:-.01em}
+    .card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.8rem}
+    .card{background:rgba(255,255,255,.3);border:1px solid rgba(26,26,18,.15);padding:1.8rem;transition:background .22s,transform .22s,box-shadow .22s}
+    .card:hover{background:rgba(255,255,255,.55);transform:translateY(-4px);box-shadow:0 10px 28px rgba(26,26,18,.1)}
+    .card-tag{font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;opacity:.45;margin-bottom:.6rem}
+    .card-title{font-size:1.2rem;font-weight:500;line-height:1.3;margin-bottom:.5rem}
+    .card-desc{font-size:.93rem;font-style:italic;opacity:.65;line-height:1.6}
+    .card-link{display:inline-block;margin-top:1rem;font-size:.82rem;letter-spacing:.08em;text-transform:uppercase;color:#1a1a12;text-decoration:none;border-bottom:1px solid #1a1a12;opacity:.55;transition:opacity .2s}
+    .card-link:hover{opacity:1}
+    #page-city{flex-direction:column}
+    .city-header{padding:2rem 6vw 1.5rem;border-bottom:1px solid rgba(26,26,18,.18);display:flex;align-items:center;gap:1.5rem}
+    .city-back{background:none;border:none;cursor:pointer;font-family:"Roboto Mono",monospace;font-size:.75rem;color:#1a1a12;opacity:.5;transition:opacity .2s}
+    .city-back:hover{opacity:1}
+    .city-title{font-size:clamp(1.6rem,3.5vw,2.6rem);font-weight:400;font-style:italic}
+    .city-layout{display:flex;flex:1;min-height:0}
+    #city-map{flex:1;min-height:520px;z-index:1}
+    .city-sidebar{width:280px;flex-shrink:0;border-left:1.5px solid #1a1a12;display:flex;flex-direction:column;overflow:hidden;background:rgba(255,245,247,.8)}
+    .sidebar-title{padding:1.4rem 1.5rem 1rem;font-size:.8rem;letter-spacing:.14em;text-transform:uppercase;opacity:.45;border-bottom:1px solid rgba(26,26,18,.12);font-family:"Roboto Mono",monospace}
+    .spots-list{flex:1;overflow-y:auto;padding:.5rem 0}
+    .spot-item{padding:.9rem 1.5rem;border-bottom:1px solid rgba(26,26,18,.08);cursor:pointer;transition:background .15s;display:flex;gap:.8rem;align-items:flex-start}
+    .spot-item:hover{background:rgba(255,255,255,.4)}
+    .spot-emoji{font-size:1rem;margin-top:.1rem;flex-shrink:0}
+    .spot-name{font-size:1rem;font-weight:500;line-height:1.2}
+    .spot-cat{font-size:.78rem;font-style:italic;opacity:.5;margin-top:.1rem}
+    .leaflet-popup-content-wrapper{font-family:"EB Garamond",serif!important;border-radius:0!important;border:1px solid #1a1a12!important;box-shadow:4px 4px 0 rgba(26,26,18,.08)!important;background:rgba(255,250,245,.97)!important}
+    .leaflet-popup-tip{background:rgba(255,250,245,.97)!important}
+    .leaflet-popup-content{font-size:1rem;line-height:1.5;margin:10px 14px!important}
+    .popup-name{font-weight:500;font-size:1.05rem}
+    .popup-cat{font-style:italic;opacity:.6;font-size:.88rem}
+    .popup-note{margin-top:.3rem;font-size:.92rem;opacity:.8}
+    .spot-dot{width:14px;height:14px;border-radius:50%;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,.25)}
+    @media(max-width:700px){.city-layout{flex-direction:column}.city-sidebar{width:100%;border-left:none;border-top:1.5px solid #1a1a12;max-height:240px}}
+    footer{border-top:1.5px solid #1a1a12;padding:1.8rem 6vw;display:flex;justify-content:space-between;font-size:.85rem;font-style:italic;opacity:.5;flex-wrap:wrap;gap:.5rem;flex-shrink:0}
+    footer a{color:#1a1a12;text-decoration:none;border-bottom:1px solid currentColor}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-top">
+      <button class="site-name" onclick="showPage('home')">Francesca <em>Gnuva</em></button>
+    </div>
+    <nav>
+      <button id="nav-experiences" onclick="showPage('experiences')">experiences</button>
+      <button id="nav-art" onclick="showPage('art')">art</button>
+      <button id="nav-writings" onclick="showPage('writings')">writings</button>
+      <button id="nav-readings" onclick="showPage('readings')">readings</button>
+      <button id="nav-music" onclick="showPage('music')">music</button>
+    </nav>
+  </header>
+
+  <div id="page-home" class="page active visible">
+    <div id="globe-wrap"><svg id="globe-svg"></svg></div>
+  </div>
+
+  <div id="page-experiences" class="page">
+    <div class="inner-page">
+      <h2 class="page-title">Experiences</h2>
+      <p style="max-width:600px;line-height:1.85;font-size:1.05rem;">I was born and raised in Nice, in the south of France. Growing up, I was always a &ldquo;serial generalist:&rdquo; obsessed with math and physics but also philosophy and the arts. I skied competitively and sketched in my free time. After graduating from high school, I attended Columbia, where I majored in applied mathematics and also spent a lot of time in the history and visual arts departments. I worked in finance for a little over three years (IB at Rothschild &amp; Co in NYC / PE at TA Associates in Boston, where I sourced and conducted diligence for our investment in Kline Hill Partners). I transitioned into tech when I joined Hummingbird in 2025 and more recently joined Audacious Ventures&rsquo; investment team in SF.</p>
+    </div>
+  </div>
+
+  <div id="page-art" class="page">
+    <div class="inner-page">
+      <h2 class="page-title">Art</h2>
+      <div class="card-grid">
+        <div class="card" style="padding:0;overflow:hidden;">
+          <img src="roger.jpeg" style="width:100%;display:block;aspect-ratio:1/1;object-fit:cover;"/>
+          <div style="padding:1.4rem 1.6rem 1.6rem;">
+            <div class="card-tag">April 2022 &middot; NYC</div>
+            <div class="card-title"><em>Roger</em></div>
+          </div>
+        </div>
+        <div class="card"><div class="card-tag">Series - 2024</div><div class="card-title">Work or Series Title</div><div class="card-desc">Medium, materials, or a brief note about the concept.</div><a class="card-link" href="#">View</a></div>
+        <div class="card"><div class="card-tag">Installation - 2023</div><div class="card-title">Another Work</div><div class="card-desc">Medium, materials, or a brief note about the concept.</div><a class="card-link" href="#">View</a></div>
+        <div class="card"><div class="card-tag">Drawing - 2022</div><div class="card-title">Ongoing Practice</div><div class="card-desc">Medium, materials, or a brief note about the concept.</div><a class="card-link" href="#">View</a></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="page-writings" class="page">
+    <div class="inner-page">
+      <h2 class="page-title">Writings</h2>
+      <div class="card-grid">
+        <div class="card"><div class="card-tag">Essay - 2024</div><div class="card-title">Essay or Article Title</div><div class="card-desc">Published in - a brief note about the argument or subject.</div><a class="card-link" href="#">Read</a></div>
+        <div class="card"><div class="card-tag">Essay - 2023</div><div class="card-title">Another Writing</div><div class="card-desc">Published in - a brief note about the argument or subject.</div><a class="card-link" href="#">Read</a></div>
+        <div class="card"><div class="card-tag">Review - 2023</div><div class="card-title">Review or Short Form</div><div class="card-desc">Published in - a brief note about the argument or subject.</div><a class="card-link" href="#">Read</a></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="page-readings" class="page">
+    <div class="inner-page">
+      <h2 class="page-title">Readings</h2>
+      <div class="card-grid">
+        <div class="card"><div class="card-tag">Novel - Fiction</div><div class="card-title">Book Title</div><div class="card-desc">Author - a brief note on why this book matters to you.</div></div>
+        <div class="card"><div class="card-tag">Non-fiction - Philosophy</div><div class="card-title">Another Title</div><div class="card-desc">Author - a brief note on why this book matters to you.</div></div>
+        <div class="card"><div class="card-tag">Poetry</div><div class="card-title">Collection Title</div><div class="card-desc">Author - a brief note on why this book matters to you.</div></div>
+        <div class="card"><div class="card-tag">Essay collection</div><div class="card-title">Another Title</div><div class="card-desc">Author - a brief note on why this book matters to you.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="page-music" class="page">
+    <div class="inner-page">
+      <h2 class="page-title">Music</h2>
+      <div class="card-grid">
+        <div class="card"><div class="card-tag">Album</div><div class="card-title">Album Title</div><div class="card-desc">Artist - a brief note on what this record means to you.</div></div>
+        <div class="card"><div class="card-tag">Album</div><div class="card-title">Another Album</div><div class="card-desc">Artist - a brief note on what this record means to you.</div></div>
+        <div class="card"><div class="card-tag">Playlist</div><div class="card-title">Playlist Name</div><div class="card-desc">A brief description of the mood or theme.</div><a class="card-link" href="#">Listen</a></div>
+        <div class="card"><div class="card-tag">Artist</div><div class="card-title">Artist Name</div><div class="card-desc">A brief note on why this artist's work stays with you.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="page-city" class="page">
+    <div class="city-header">
+      <button class="city-back" onclick="showPage('home')">back to globe</button>
+      <h2 class="city-title" id="city-page-title"></h2>
+    </div>
+    <div class="city-layout">
+      <div id="city-map"></div>
+      <div class="city-sidebar">
+        <div class="sidebar-title">favourite spots</div>
+        <div class="spots-list" id="spots-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="page-veil"></div>
+  <div id="map-tooltip"></div>
+
+  <footer>
+    <span>2025 Francesca Gnuva</span>
+    <a href="mailto:hello@francescagnuva.com">hello@francescagnuva.com</a>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+  <script>
+  var CITIES = {
+    "San Francisco":{lat:37.7749,lon:-122.4194,zoom:13,spots:[
+      {name:"Tartine Bakery",cat:"Cafe",emoji:"",lat:37.7612,lon:-122.4240,note:"Best morning bun in the city."},
+      {name:"Dolores Park",cat:"Park",emoji:"",lat:37.7596,lon:-122.4269,note:"Picnics with a skyline view."},
+      {name:"SFMOMA",cat:"Museum",emoji:"",lat:37.7857,lon:-122.4011,note:"Essential contemporary art."},
+      {name:"Nopa",cat:"Restaurant",emoji:"",lat:37.7757,lon:-122.4367,note:"Late-night wood-fired cooking."},
+      {name:"City Lights Bookstore",cat:"Bookshop",emoji:"",lat:37.7979,lon:-122.4066,note:"Beat poetry birthplace."},
+      {name:"Sightglass Coffee",cat:"Coffee",emoji:"",lat:37.7754,lon:-122.4094,note:"Beautiful SoMa roastery."}
+    ]},
+    "New York City":{lat:40.7128,lon:-74.0060,zoom:12,spots:[
+      {name:"The Met",cat:"Museum",emoji:"",lat:40.7794,lon:-73.9632,note:"A whole day, every time."},
+      {name:"Russ and Daughters",cat:"Cafe",emoji:"",lat:40.7220,lon:-73.9874,note:"Legendary Lower East Side deli."},
+      {name:"Prospect Park",cat:"Park",emoji:"",lat:40.6602,lon:-73.9690,note:"Brooklyn breathing room."},
+      {name:"Via Carota",cat:"Restaurant",emoji:"",lat:40.7333,lon:-74.0027,note:"Perfect Italian in the West Village."},
+      {name:"McNally Jackson",cat:"Bookshop",emoji:"",lat:40.7233,lon:-73.9985,note:"Best indie bookshop downtown."},
+      {name:"Attaboy",cat:"Bar",emoji:"",lat:40.7216,lon:-73.9893,note:"No-menu cocktail bar, always surprising."}
+    ]},
+    "Boston":{lat:42.3601,lon:-71.0589,zoom:13,spots:[
+      {name:"Isabella Stewart Gardner Museum",cat:"Museum",emoji:"",lat:42.3382,lon:-71.0990,note:"The stolen paintings haunt the empty frames."},
+      {name:"Tatte Bakery",cat:"Cafe",emoji:"",lat:42.3467,lon:-71.0972,note:"Israeli-inspired, flaky and lovely."},
+      {name:"Arnold Arboretum",cat:"Park",emoji:"",lat:42.3015,lon:-71.1254,note:"Ancient trees, free and quiet."},
+      {name:"Oleana",cat:"Restaurant",emoji:"",lat:42.3650,lon:-71.1033,note:"Ana Sortun Eastern Mediterranean cooking."},
+      {name:"Trident Booksellers",cat:"Bookshop",emoji:"",lat:42.3497,lon:-71.0827,note:"Cozy Back Bay books and coffee."},
+      {name:"Drink",cat:"Bar",emoji:"",lat:42.3485,lon:-71.0480,note:"Fort Point cocktail institution."}
+    ]},
+    "Austin":{lat:30.2672,lon:-97.7431,zoom:12,spots:[
+      {name:"Blanton Museum of Art",cat:"Museum",emoji:"",lat:30.2823,lon:-97.7393,note:"Ellsworth Kelly chapel alone is worth it."},
+      {name:"Barton Springs Pool",cat:"Park",emoji:"",lat:30.2635,lon:-97.7720,note:"Cold spring-fed swim in the heat."},
+      {name:"Uchi",cat:"Restaurant",emoji:"",lat:30.2594,lon:-97.7584,note:"Japanese-Texas fusion, exceptional."},
+      {name:"BookPeople",cat:"Bookshop",emoji:"",lat:30.2798,lon:-97.7499,note:"Austin beloved indie bookstore."},
+      {name:"Whislers",cat:"Bar",emoji:"",lat:30.2632,lon:-97.7237,note:"Mezcal bar with a rooftop mezcaleria."},
+      {name:"Juan In A Million",cat:"Breakfast",emoji:"",lat:30.2639,lon:-97.7172,note:"Don Juan taco, a local legend."}
+    ]}
+  };
+
+  var CAT_COLORS={"Museum":"#8e44ad","Restaurant":"#e74c3c","Bar":"#2c3e50","Cafe":"#c0835a","Coffee":"#c0835a","Park":"#27ae60","Bookshop":"#2980b9","Breakfast":"#e67e22"};
+  function colorForCat(c){return CAT_COLORS[c]||"#555";}
+
+  var leafletMap=null;
+  var NAV_PAGES=["experiences","art","writings","readings","music"];
+
+  function buildCityMap(cityName){
+    var city=CITIES[cityName];
+    if(!city)return;
+    if(leafletMap){leafletMap.remove();leafletMap=null;}
+    document.getElementById("spots-list").innerHTML="";
+    leafletMap=L.map("city-map",{zoomControl:true}).setView([city.lat,city.lon],city.zoom);
+    L.tileLayer("https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png",{
+      attribution:"Stadia Maps / OpenStreetMap",maxZoom:20
+    }).addTo(leafletMap);
+    city.spots.forEach(function(spot){
+      var color=colorForCat(spot.cat);
+      var icon=L.divIcon({className:"",html:"<div class='spot-dot' style='background:"+color+"'></div>",iconSize:[14,14],iconAnchor:[7,7],popupAnchor:[0,-10]});
+      var marker=L.marker([spot.lat,spot.lon],{icon:icon}).addTo(leafletMap);
+      marker.bindPopup("<div class='popup-name'>"+spot.name+"</div><div class='popup-cat'>"+spot.cat+"</div>"+(spot.note?"<div class='popup-note'>"+spot.note+"</div>":""),{maxWidth:220});
+      var item=document.createElement("div");
+      item.className="spot-item";
+      item.innerHTML="<span class='spot-emoji'>"+spot.emoji+"</span><div class='spot-info'><div class='spot-name'>"+spot.name+"</div><div class='spot-cat'>"+spot.cat+"</div></div>";
+      (function(m,s){item.addEventListener("click",function(){leafletMap.setView([s.lat,s.lon],15,{animate:true});m.openPopup();});})(marker,spot);
+      document.getElementById("spots-list").appendChild(item);
+    });
+    setTimeout(function(){leafletMap.invalidateSize();},100);
+  }
+
+  function doSwap(id,cityName){
+    document.querySelectorAll(".page").forEach(function(p){p.classList.remove("active","visible");});
+    document.querySelectorAll("nav button").forEach(function(b){b.classList.remove("active");});
+    var next=document.getElementById("page-"+id);
+    next.classList.add("active");
+    if(NAV_PAGES.indexOf(id)!==-1){document.getElementById("nav-"+id).classList.add("active");}
+    window.scrollTo({top:0,behavior:"instant"});
+    if(id==="city"&&cityName){
+      document.getElementById("city-page-title").textContent=cityName;
+      buildCityMap(cityName);
+    }
+    requestAnimationFrame(function(){
+      document.getElementById("page-veil").classList.remove("covering");
+      requestAnimationFrame(function(){next.classList.add("visible");});
+    });
+  }
+
+  function showPage(id,push){
+    if(push!==false)history.pushState({page:id},"",(id==="home"?"/":"/"+id));
+    var veil=document.getElementById("page-veil");
+    veil.classList.add("covering");
+    setTimeout(function(){doSwap(id,null);},260);
+  }
+
+  function openCity(cityName,push){
+    if(push!==false)history.pushState({page:"city",city:cityName},"",(window.location.origin+"/city/"+encodeURIComponent(cityName)));
+    var veil=document.getElementById("page-veil");
+    veil.classList.add("covering");
+    setTimeout(function(){doSwap("city",cityName);},260);
+  }
+
+  window.addEventListener("popstate",function(e){
+    var s=e.state;
+    if(!s){showPage("home",false);return;}
+    if(s.page==="city"&&s.city){openCity(s.city,false);}
+    else{showPage(s.page||"home",false);}
+  });
+
+  (function(){
+    var params=new URLSearchParams(window.location.search);
+    var p=params.get("p");
+    var path=p?decodeURIComponent(p).replace(/^\/|\/$/g,""):window.location.pathname.replace(/^\/|\/$/g,"")||"home";
+    if(p){history.replaceState(null,"",(path==="home"?"/":"/"+path));}
+    if(path.indexOf("city/")===0){
+      var cn=decodeURIComponent(path.replace("city/",""));
+      if(CITIES[cn]){
+        history.replaceState({page:"city",city:cn},"",(window.location.origin+"/city/"+encodeURIComponent(cn)));
+        document.querySelectorAll(".page").forEach(function(pg){pg.classList.remove("active","visible");});
+        var nx=document.getElementById("page-city");
+        nx.classList.add("active","visible");
+        document.getElementById("city-page-title").textContent=cn;
+        buildCityMap(cn);
+        return;
+      }
+    }
+    var id=NAV_PAGES.indexOf(path)!==-1?path:"home";
+    history.replaceState({page:id},"",(id==="home"?"/":"/"+id));
+    if(id!=="home"){
+      document.querySelectorAll(".page").forEach(function(pg){pg.classList.remove("active","visible");});
+      document.querySelectorAll("nav button").forEach(function(b){b.classList.remove("active");});
+      var nx=document.getElementById("page-"+id);
+      nx.classList.add("active","visible");
+      document.getElementById("nav-"+id).classList.add("active");
+    }
+  })();
+  </script>
+
+  <script>
+  (async function(){
+    var wrap=document.getElementById("globe-wrap");
+    var svgEl=document.getElementById("globe-svg");
+    var tooltip=document.getElementById("map-tooltip");
+    var SIZE=wrap.clientWidth,R=SIZE/2-2;
+    var svg=d3.select(svgEl).attr("viewBox","0 0 "+SIZE+" "+SIZE);
+    var proj=d3.geoOrthographic().scale(R).translate([SIZE/2,SIZE/2]).clipAngle(90).rotate([20,-20]);
+    var path=d3.geoPath().projection(proj);
+    var defs=svg.append("defs");
+    defs.append("clipPath").attr("id","globe-clip").append("circle").attr("cx",SIZE/2).attr("cy",SIZE/2).attr("r",R);
+    var g1=defs.append("radialGradient").attr("id","sphere-grad").attr("cx","40%").attr("cy","38%").attr("r","60%");
+    g1.append("stop").attr("offset","0%").attr("stop-color","#e8f6fc");
+    g1.append("stop").attr("offset","100%").attr("stop-color","#9ec8e0");
+    svg.append("circle").attr("cx",SIZE/2).attr("cy",SIZE/2).attr("r",R).attr("fill","url(#sphere-grad)");
+    var g=svg.append("g").attr("clip-path","url(#globe-clip)");
+    var grat=d3.geoGraticule();
+    var gratP=g.append("path").datum(grat()).attr("fill","none").attr("stroke","#a0c8df").attr("stroke-width",.4).attr("opacity",.6);
+    var world=await d3.json("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json");
+    var countries=topojson.feature(world,world.objects.countries);
+    var cPaths=g.selectAll(".country").data(countries.features).join("path").attr("class","country")
+      .attr("fill",function(d){return d.id==250?"#a8d8ea":d.id==840?"#ffb7c5":"#d0e8ca";})
+      .attr("stroke","#8ab88a").attr("stroke-width",.35);
+    var sg=defs.append("radialGradient").attr("id","shade-grad").attr("cx","68%").attr("cy","68%").attr("r","60%");
+    sg.append("stop").attr("offset","0%").attr("stop-color","rgba(0,0,60,0.18)");
+    sg.append("stop").attr("offset","100%").attr("stop-color","rgba(0,0,0,0)");
+    g.append("circle").attr("cx",SIZE/2).attr("cy",SIZE/2).attr("r",R).attr("fill","url(#shade-grad)").style("pointer-events","none");
+    var sh=defs.append("radialGradient").attr("id","sheen-grad").attr("cx","32%").attr("cy","28%").attr("r","38%");
+    sh.append("stop").attr("offset","0%").attr("stop-color","rgba(255,255,255,0.28)");
+    sh.append("stop").attr("offset","100%").attr("stop-color","rgba(255,255,255,0)");
+    svg.append("circle").attr("cx",SIZE/2).attr("cy",SIZE/2).attr("r",R).attr("fill","url(#sheen-grad)").style("pointer-events","none");
+    svg.append("circle").attr("cx",SIZE/2).attr("cy",SIZE/2).attr("r",R).attr("fill","none").attr("stroke","rgba(100,140,160,0.4)").attr("stroke-width",1.2).style("pointer-events","none");
+    var pins=[
+      {name:"San Francisco",lat:37.7749,lon:-122.4194,type:"home"},
+      {name:"New York City",lat:40.7128,lon:-74.0060,type:"spot"},
+      {name:"Boston",lat:42.3601,lon:-71.0589,type:"spot"},
+      {name:"Austin",lat:30.2672,lon:-97.7431,type:"spot"}
+    ];
+    var pulseL=g.append("g"),dotL=g.append("g"),labL=g.append("g"),isDrag=false;
+    function vis(lon,lat){var r=proj.rotate();return d3.geoDistance([lon,lat],[-r[0],-r[1]])<Math.PI/2;}
+    function drawPins(){
+      dotL.selectAll("*").remove();labL.selectAll("*").remove();
+      pins.forEach(function(pin){
+        if(!vis(pin.lon,pin.lat))return;
+        var c=proj([pin.lon,pin.lat]),x=c[0],y=c[1],isH=pin.type==="home";
+        var dot=dotL.append("circle").attr("cx",x).attr("cy",y).attr("r",isH?6:5)
+          .attr("fill",isH?"#8e44ad":"#c0392b").attr("stroke","white").attr("stroke-width",1.8).style("cursor","pointer");
+        (function(p){
+          dot.on("mouseover",function(){if(isDrag)return;tooltip.style.display="block";tooltip.textContent=p.name;})
+             .on("mousemove",function(e){tooltip.style.left=(e.clientX+14)+"px";tooltip.style.top=(e.clientY-10)+"px";})
+             .on("mouseout",function(){tooltip.style.display="none";})
+             .on("click",function(){if(isDrag)return;tooltip.style.display="none";openCity(p.name);});
+        })(pin);
+        labL.append("text").attr("x",x+9).attr("y",y+4).text(pin.name)
+          .attr("font-family","EB Garamond,serif").attr("font-size",isH?"11px":"10px")
+          .attr("font-style","italic").attr("fill","#1a1a12")
+          .attr("paint-order","stroke").attr("stroke","white").attr("stroke-width",3)
+          .style("pointer-events","none");
+      });
+    }
+    setInterval(function(){
+      if(!vis(-122.4194,37.7749))return;
+      var c=proj([-122.4194,37.7749]);
+      pulseL.append("circle").attr("cx",c[0]).attr("cy",c[1]).attr("r",6)
+        .attr("fill","none").attr("stroke","#8e44ad").attr("stroke-width",1.5).attr("opacity",.8)
+        .transition().duration(1400).attr("r",22).attr("opacity",0).remove();
+    },1600);
+    function redraw(){cPaths.attr("d",path);gratP.attr("d",path(grat()));drawPins();}
+    redraw();
+    var lp=null,dd=0;
+    svg.call(d3.drag()
+      .on("start",function(e){lp=[e.x,e.y];dd=0;isDrag=false;})
+      .on("drag",function(e){
+        if(!lp)return;
+        var dx=e.x-lp[0],dy=e.y-lp[1];
+        dd+=Math.sqrt(dx*dx+dy*dy);if(dd>3)isDrag=true;
+        var r=proj.rotate();proj.rotate([r[0]+dx*.35,r[1]-dy*.35]);
+        lp=[e.x,e.y];redraw();
+      })
+      .on("end",function(){lp=null;setTimeout(function(){isDrag=false;},50);})
+    );
+    svg.on("wheel",function(e){
+      e.preventDefault();
+      proj.scale(Math.max(80,Math.min(proj.scale()-e.deltaY*.6,SIZE*3)));redraw();
+    });
+  })();
+  </script>
+</body>
+</html>
