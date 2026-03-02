@@ -10,12 +10,11 @@
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     html,body{height:100%}
-    body{background:#fff5f7;color:#1a1a12;font-family:"EB Garamond",Georgia,serif;font-size:18px;line-height:1.6;min-height:100vh;display:flex;flex-direction:column}
+    body{background:#fffafc;color:#1a1a12;font-family:"EB Garamond",Georgia,serif;font-size:18px;line-height:1.6;min-height:100vh;display:flex;flex-direction:column}
     body::before{content:"";position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:1000;opacity:.4}
     header{padding:3rem 6vw 0;border-bottom:1.5px solid #1a1a12;flex-shrink:0}
     .header-top{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:1rem;padding-bottom:1.2rem}
     .site-name{font-size:clamp(1.8rem,4.5vw,3.4rem);font-weight:500;letter-spacing:-.02em;line-height:1;cursor:pointer;color:inherit;background:none;border:none;font-family:"EB Garamond",Georgia,serif}
-    .site-name em{font-style:italic;font-weight:400}
     nav{display:flex;gap:2rem;padding-top:.1rem;flex-wrap:wrap}
     nav button{background:none;border:none;font-family:"Roboto Mono",monospace;font-size:.75rem;letter-spacing:.03em;text-transform:lowercase;color:#1a1a12;cursor:pointer;padding:.65rem 0;position:relative;opacity:.55;transition:opacity .2s}
     nav button::after{content:"";position:absolute;bottom:0;left:0;right:0;height:2px;background:#1a1a12;transform:scaleX(0);transform-origin:left;transition:transform .22s ease}
@@ -24,7 +23,7 @@
     .page{display:none;flex:1;flex-direction:column;opacity:0;transition:opacity .35s ease}
     .page.active{display:flex}
     .page.visible{opacity:1}
-    #page-veil{position:fixed;inset:0;background:#fff5f7;opacity:0;pointer-events:none;z-index:900;transition:opacity .25s ease}
+    #page-veil{position:fixed;inset:0;background:#fffafc;opacity:0;pointer-events:none;z-index:900;transition:opacity .25s ease}
     #page-veil.covering{opacity:1;pointer-events:all}
     #page-home{align-items:center;padding:2.5rem 4vw 4rem}
     #globe-wrap{width:min(600px,86vw);aspect-ratio:1/1}
@@ -32,14 +31,6 @@
     #globe-svg:active{cursor:grabbing}
     #map-tooltip{display:none;position:fixed;background:rgba(255,255,255,.93);border:1px solid #1a1a12;padding:6px 12px;font-family:"EB Garamond",serif;font-size:.95rem;pointer-events:none;z-index:500}
     .inner-page{padding:4rem 8vw 6rem;max-width:860px}
-    .card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.8rem}
-    .card{background:rgba(255,255,255,.3);border:1px solid rgba(26,26,18,.15);padding:1.8rem;transition:background .22s,transform .22s,box-shadow .22s}
-    .card:hover{background:rgba(255,255,255,.55);transform:translateY(-4px);box-shadow:0 10px 28px rgba(26,26,18,.1)}
-    .card-tag{font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;opacity:.45;margin-bottom:.6rem}
-    .card-title{font-size:1.2rem;font-weight:500;line-height:1.3;margin-bottom:.5rem}
-    .card-desc{font-size:.93rem;font-style:italic;opacity:.65;line-height:1.6}
-    .card-link{display:inline-block;margin-top:1rem;font-size:.82rem;letter-spacing:.08em;text-transform:uppercase;color:#1a1a12;text-decoration:none;border-bottom:1px solid #1a1a12;opacity:.55;transition:opacity .2s}
-    .card-link:hover{opacity:1}
     .art-item{display:flex;gap:3rem;align-items:flex-start;margin-bottom:4rem}
     .art-item img{width:min(340px,55vw);flex-shrink:0;display:block}
     .art-meta{padding-top:.4rem}
@@ -53,7 +44,7 @@
     .city-title{font-size:clamp(1.6rem,3.5vw,2.6rem);font-weight:400;font-style:italic}
     .city-layout{display:flex;flex:1;min-height:0}
     #city-map{flex:1;min-height:520px;z-index:1}
-    .city-sidebar{width:280px;flex-shrink:0;border-left:1.5px solid #1a1a12;display:flex;flex-direction:column;overflow:hidden;background:rgba(255,245,247,.8)}
+    .city-sidebar{width:280px;flex-shrink:0;border-left:1.5px solid #1a1a12;display:flex;flex-direction:column;overflow:hidden;background:rgba(255,250,252,.8)}
     .sidebar-title{padding:1.4rem 1.5rem 1rem;font-size:.8rem;letter-spacing:.14em;text-transform:uppercase;opacity:.45;border-bottom:1px solid rgba(26,26,18,.12);font-family:"Roboto Mono",monospace}
     .spots-list{flex:1;overflow-y:auto;padding:.5rem 0}
     .spot-item{padding:.9rem 1.5rem;border-bottom:1px solid rgba(26,26,18,.08);cursor:pointer;transition:background .15s;display:flex;gap:.8rem;align-items:flex-start}
@@ -61,8 +52,8 @@
     .spot-emoji{font-size:1rem;margin-top:.1rem;flex-shrink:0}
     .spot-name{font-size:1rem;font-weight:500;line-height:1.2}
     .spot-cat{font-size:.78rem;font-style:italic;opacity:.5;margin-top:.1rem}
-    .leaflet-popup-content-wrapper{font-family:"EB Garamond",serif!important;border-radius:0!important;border:1px solid #1a1a12!important;box-shadow:4px 4px 0 rgba(26,26,18,.08)!important;background:rgba(255,250,245,.97)!important}
-    .leaflet-popup-tip{background:rgba(255,250,245,.97)!important}
+    .leaflet-popup-content-wrapper{font-family:"EB Garamond",serif!important;border-radius:0!important;border:1px solid #1a1a12!important;box-shadow:4px 4px 0 rgba(26,26,18,.08)!important;background:rgba(255,250,252,.97)!important}
+    .leaflet-popup-tip{background:rgba(255,250,252,.97)!important}
     .leaflet-popup-content{font-size:1rem;line-height:1.5;margin:10px 14px!important}
     .popup-name{font-weight:500;font-size:1.05rem}
     .popup-cat{font-style:italic;opacity:.6;font-size:.88rem}
@@ -76,7 +67,7 @@
 <body>
   <header>
     <div class="header-top">
-      <button class="site-name" onclick="showPage('home')">Francesca <em>Gnuva</em></button>
+      <button class="site-name" onclick="showPage('home')">Francesca Gnuva</button>
     </div>
     <nav>
       <button id="nav-experiences" onclick="showPage('experiences')">experience</button>
@@ -106,39 +97,40 @@
           <div class="art-date">April 2022 &middot; NYC</div>
         </div>
       </div>
+      <div class="art-item">
+        <img src="chinatown.jpeg" alt="Chinatown"/>
+        <div class="art-meta">
+          <div class="art-title"><em>Chinatown</em></div>
+          <div class="art-date">2019 &middot; NYC</div>
+        </div>
+      </div>
+      <div class="art-item">
+        <img src="kevin.jpeg" alt="Kevin"/>
+        <div class="art-meta">
+          <div class="art-title"><em>Kevin</em></div>
+          <div class="art-date">2022 &middot; Gospel, NYC</div>
+        </div>
+      </div>
+      <div class="art-item">
+        <img src="le-yaca.jpeg" alt="le Yaca"/>
+        <div class="art-meta">
+          <div class="art-title"><em>le Yaca</em></div>
+          <div class="art-date">2022 &middot; St Tropez</div>
+        </div>
+      </div>
     </div>
   </div>
 
   <div id="page-writings" class="page">
-    <div class="inner-page">
-      <div class="card-grid">
-        <div class="card"><div class="card-tag">Essay - 2024</div><div class="card-title">Essay or Article Title</div><div class="card-desc">Published in - a brief note about the argument or subject.</div><a class="card-link" href="#">Read</a></div>
-        <div class="card"><div class="card-tag">Essay - 2023</div><div class="card-title">Another Writing</div><div class="card-desc">Published in - a brief note about the argument or subject.</div><a class="card-link" href="#">Read</a></div>
-        <div class="card"><div class="card-tag">Review - 2023</div><div class="card-title">Review or Short Form</div><div class="card-desc">Published in - a brief note about the argument or subject.</div><a class="card-link" href="#">Read</a></div>
-      </div>
-    </div>
+    <div class="inner-page"></div>
   </div>
 
   <div id="page-readings" class="page">
-    <div class="inner-page">
-      <div class="card-grid">
-        <div class="card"><div class="card-tag">Novel - Fiction</div><div class="card-title">Book Title</div><div class="card-desc">Author - a brief note on why this book matters to you.</div></div>
-        <div class="card"><div class="card-tag">Non-fiction - Philosophy</div><div class="card-title">Another Title</div><div class="card-desc">Author - a brief note on why this book matters to you.</div></div>
-        <div class="card"><div class="card-tag">Poetry</div><div class="card-title">Collection Title</div><div class="card-desc">Author - a brief note on why this book matters to you.</div></div>
-        <div class="card"><div class="card-tag">Essay collection</div><div class="card-title">Another Title</div><div class="card-desc">Author - a brief note on why this book matters to you.</div></div>
-      </div>
-    </div>
+    <div class="inner-page"></div>
   </div>
 
   <div id="page-music" class="page">
-    <div class="inner-page">
-      <div class="card-grid">
-        <div class="card"><div class="card-tag">Album</div><div class="card-title">Album Title</div><div class="card-desc">Artist - a brief note on what this record means to you.</div></div>
-        <div class="card"><div class="card-tag">Album</div><div class="card-title">Another Album</div><div class="card-desc">Artist - a brief note on what this record means to you.</div></div>
-        <div class="card"><div class="card-tag">Playlist</div><div class="card-title">Playlist Name</div><div class="card-desc">A brief description of the mood or theme.</div><a class="card-link" href="#">Listen</a></div>
-        <div class="card"><div class="card-tag">Artist</div><div class="card-title">Artist Name</div><div class="card-desc">A brief note on why this artist's work stays with you.</div></div>
-      </div>
-    </div>
+    <div class="inner-page"></div>
   </div>
 
   <div id="page-city" class="page">
@@ -203,7 +195,6 @@
 
   var CAT_COLORS={"Museum":"#8e44ad","Restaurant":"#e74c3c","Bar":"#2c3e50","Cafe":"#c0835a","Coffee":"#c0835a","Park":"#27ae60","Bookshop":"#2980b9","Breakfast":"#e67e22"};
   function colorForCat(c){return CAT_COLORS[c]||"#555";}
-
   var leafletMap=null;
   var NAV_PAGES=["experiences","art","writings","readings","music"];
 
@@ -213,9 +204,7 @@
     if(leafletMap){leafletMap.remove();leafletMap=null;}
     document.getElementById("spots-list").innerHTML="";
     leafletMap=L.map("city-map",{zoomControl:true}).setView([city.lat,city.lon],city.zoom);
-    L.tileLayer("https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png",{
-      attribution:"Stadia Maps / OpenStreetMap",maxZoom:20
-    }).addTo(leafletMap);
+    L.tileLayer("https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png",{attribution:"Stadia Maps / OpenStreetMap",maxZoom:20}).addTo(leafletMap);
     city.spots.forEach(function(spot){
       var color=colorForCat(spot.cat);
       var icon=L.divIcon({className:"",html:"<div class='spot-dot' style='background:"+color+"'></div>",iconSize:[14,14],iconAnchor:[7,7],popupAnchor:[0,-10]});
@@ -237,10 +226,7 @@
     next.classList.add("active");
     if(NAV_PAGES.indexOf(id)!==-1){document.getElementById("nav-"+id).classList.add("active");}
     window.scrollTo({top:0,behavior:"instant"});
-    if(id==="city"&&cityName){
-      document.getElementById("city-page-title").textContent=cityName;
-      buildCityMap(cityName);
-    }
+    if(id==="city"&&cityName){document.getElementById("city-page-title").textContent=cityName;buildCityMap(cityName);}
     requestAnimationFrame(function(){
       document.getElementById("page-veil").classList.remove("covering");
       requestAnimationFrame(function(){next.classList.add("visible");});
@@ -249,15 +235,13 @@
 
   function showPage(id,push){
     if(push!==false)history.pushState({page:id},"",(id==="home"?"/":"/"+id));
-    var veil=document.getElementById("page-veil");
-    veil.classList.add("covering");
+    document.getElementById("page-veil").classList.add("covering");
     setTimeout(function(){doSwap(id,null);},260);
   }
 
   function openCity(cityName,push){
     if(push!==false)history.pushState({page:"city",city:cityName},"",(window.location.origin+"/city/"+encodeURIComponent(cityName)));
-    var veil=document.getElementById("page-veil");
-    veil.classList.add("covering");
+    document.getElementById("page-veil").classList.add("covering");
     setTimeout(function(){doSwap("city",cityName);},260);
   }
 
