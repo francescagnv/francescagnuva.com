@@ -4,7 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Francesca Gnuva</title>
-  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Roboto+Mono:wght@400;500&family=Cormorant+Garamond:wght@500;600&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
   <style>
@@ -14,7 +14,7 @@
     body::before{content:"";position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:1000;opacity:.4}
     header{padding:3rem 6vw 0;border-bottom:1.5px solid #1a1a12;flex-shrink:0}
     .header-top{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:1rem;padding-bottom:1.2rem}
-    .site-name{font-size:clamp(1.8rem,4.5vw,3.4rem);font-weight:500;letter-spacing:-.02em;line-height:1;cursor:pointer;color:inherit;background:none;border:none;font-family:"EB Garamond",Georgia,serif}
+    .site-name{font-size:clamp(2rem,5vw,3.8rem);font-weight:600;letter-spacing:-.01em;line-height:1;cursor:pointer;color:inherit;background:none;border:none;font-family:"Cormorant Garamond",serif;text-transform:lowercase}
     nav{display:flex;gap:2rem;padding-top:.1rem;flex-wrap:wrap}
     nav button{background:none;border:none;font-family:"Roboto Mono",monospace;font-size:.75rem;letter-spacing:.03em;text-transform:lowercase;color:#1a1a12;cursor:pointer;padding:.65rem 0;position:relative;opacity:.55;transition:opacity .2s}
     nav button::after{content:"";position:absolute;bottom:0;left:0;right:0;height:2px;background:#1a1a12;transform:scaleX(0);transform-origin:left;transition:transform .22s ease}
@@ -25,8 +25,9 @@
     .page.visible{opacity:1}
     #page-veil{position:fixed;inset:0;background:#fffafc;opacity:0;pointer-events:none;z-index:900;transition:opacity .25s ease}
     #page-veil.covering{opacity:1;pointer-events:all}
-    #page-home{align-items:center;padding:2.5rem 4vw 4rem}
-    #globe-wrap{width:min(600px,86vw);aspect-ratio:1/1}
+    #page-home{align-items:center;justify-content:center;padding:2.5rem 4vw 4rem;position:relative;overflow:hidden;background:radial-gradient(ellipse at 50% 32%,#0d1530 0%,#02040c 78%)}
+    #cosmos-canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+    #globe-wrap{position:relative;z-index:2;width:min(600px,86vw);aspect-ratio:1/1}
     #globe-svg{width:100%;height:100%;cursor:grab;display:block}
     #globe-svg:active{cursor:grabbing}
     #map-tooltip{display:none;position:fixed;background:rgba(255,255,255,.93);border:1px solid #1a1a12;padding:6px 12px;font-family:"EB Garamond",serif;font-size:.95rem;pointer-events:none;z-index:500}
@@ -37,6 +38,11 @@
     .art-title{font-size:1.15rem;font-style:italic;margin-bottom:.3rem}
     .art-date{font-family:"Roboto Mono",monospace;font-size:.72rem;letter-spacing:.08em;opacity:.45}
     @media(max-width:600px){.art-item{flex-direction:column;gap:1.2rem}.art-item img{width:100%}}
+    #page-film .inner-page{max-width:1100px}
+    .film-grid{column-count:3;column-gap:6px}
+    .film-grid img{width:100%;display:block;margin:0 0 6px;border:none;border-radius:0;box-shadow:none;outline:none}
+    @media(max-width:900px){.film-grid{column-count:2}}
+    @media(max-width:560px){.film-grid{column-count:1}}
     #page-city{flex-direction:column}
     .city-header{padding:2rem 6vw 1.5rem;border-bottom:1px solid rgba(26,26,18,.18);display:flex;align-items:center;gap:1.5rem}
     .city-back{background:none;border:none;cursor:pointer;font-family:"Roboto Mono",monospace;font-size:.75rem;color:#1a1a12;opacity:.5;transition:opacity .2s}
@@ -72,19 +78,22 @@
     <nav>
       <button id="nav-experiences" onclick="showPage('experiences')">experience</button>
       <button id="nav-art" onclick="showPage('art')">art</button>
+      <button id="nav-film" onclick="showPage('film')">film</button>
       <button id="nav-writings" onclick="showPage('writings')">writings</button>
       <button id="nav-readings" onclick="showPage('readings')">readings</button>
-      <button id="nav-music" onclick="showPage('music')">music</button>
+      <button id="nav-projects" onclick="showPage('projects')">projects</button>
     </nav>
   </header>
 
   <div id="page-home" class="page active visible">
+    <canvas id="cosmos-canvas"></canvas>
     <div id="globe-wrap"><svg id="globe-svg"></svg></div>
   </div>
 
   <div id="page-experiences" class="page">
     <div class="inner-page">
-      <p style="max-width:600px;line-height:1.85;font-size:1.05rem;">I was born and raised in Nice, in the south of France. Growing up, I was always a &ldquo;serial generalist:&rdquo; obsessed with math and physics but also philosophy and the arts. I skied competitively and sketched in my free time. After graduating from high school, I attended Columbia, where I majored in applied mathematics and also spent a lot of time in the history and visual arts departments. I worked in finance for a little over three years (IB at Rothschild &amp; Co in NYC / PE at TA Associates in Boston, where I sourced and conducted diligence for our investment in Kline Hill Partners). I transitioned into tech when I began investing at Hummingbird in 2025; I more recently joined Audacious Ventures&rsquo; investment team in SF.</p>
+      <p style="max-width:600px;line-height:1.85;font-size:1.05rem;">hi! I&rsquo;m francesca. I was born and raised in nice, france. Growing up, I was obsessed with math and physics, but also philosophy and the arts. I skied competitively and sketched in my free time. After graduating from high school, I went to columbia (go lions!), where I majored in applied mathematics and also spent a lot of time in and around the history and visual arts departments. My two favorite math classes were Analysis and Optimization (MATH UN2500) and Complex Analysis (MATH UN3007). My senior applied mathematics <a href="https://www.linkedin.com/posts/francesca-gnuva-23b389174_gender-bias-and-homophily-in-professional-activity-6873722919759962112-wUiD?utm_source=share&amp;utm_medium=member_desktop&amp;rcm=ACoAAClYqg8BeNqPvZq3I6N0pjgswzUHG4zzJJg" target="_blank" rel="noopener" style="color:inherit;">thesis</a> research (supervised by Chris Wiggins) focused on the evolution of bias and homophily in professional hierarchies and impact to the percentage of women rising to the upper echelons of certain industries (academia, finance, law, medicine). I worked in finance for a little over three years (investment banking at rothschild &amp; co in new york / private equity at TA Associates in boston, where I sourced our investment in kline hill partners). I transitioned into tech when I began investing at hummingbird in 2025. After falling in love with san francisco, I joined audacious ventures&rsquo; investment team in SF in early 2026.</p>
+      <p style="max-width:600px;line-height:1.85;font-size:1.05rem;margin-top:1.5rem;">I love meeting talented engineers and entrepreneurs building at the frontier, which is one of the reasons I feel privileged to work in venture. I also love meeting new people in general, so please drop me a note (<a href="mailto:francesca@audacious.co" style="color:inherit;">francesca@audacious.co</a>!) if you&rsquo;d like to grab coffee or go on a walk :)</p>
     </div>
   </div>
 
@@ -95,13 +104,6 @@
         <div class="art-meta">
           <div class="art-title"><em>Roger</em></div>
           <div class="art-date">April 2022 &middot; NYC</div>
-        </div>
-      </div>
-      <div class="art-item">
-        <img src="chinatown.jpeg" alt="Chinatown"/>
-        <div class="art-meta">
-          <div class="art-title"><em>Chinatown</em></div>
-          <div class="art-date">2019 &middot; NYC</div>
         </div>
       </div>
       <div class="art-item">
@@ -121,15 +123,48 @@
     </div>
   </div>
 
+  <div id="page-film" class="page">
+    <div class="inner-page">
+      <div class="film-grid">
+        <img src="film-01.jpg" alt="Film still 1" loading="lazy"/>
+        <img src="film-02.jpg" alt="Film still 2" loading="lazy"/>
+        <img src="film-03.jpg" alt="Film still 3" loading="lazy"/>
+        <img src="film-04.jpg" alt="Film still 4" loading="lazy"/>
+        <img src="film-05.jpg" alt="Film still 5" loading="lazy"/>
+        <img src="film-06.jpg" alt="Film still 6" loading="lazy"/>
+        <img src="film-07.jpg" alt="Film still 7" loading="lazy"/>
+        <img src="film-08.jpg" alt="Film still 8" loading="lazy"/>
+        <img src="film-09.jpg" alt="Film still 9" loading="lazy"/>
+        <img src="film-10.jpg" alt="Film still 10" loading="lazy"/>
+        <img src="film-11.jpg" alt="Film still 11" loading="lazy"/>
+        <img src="film-12.jpg" alt="Film still 12" loading="lazy"/>
+        <img src="film-13.jpg" alt="Film still 13" loading="lazy"/>
+        <img src="film-14.jpg" alt="Film still 14" loading="lazy"/>
+        <img src="film-15.jpg" alt="Film still 15" loading="lazy"/>
+        <img src="film-16.jpg" alt="Film still 16" loading="lazy"/>
+        <img src="film-17.jpg" alt="Film still 17" loading="lazy"/>
+        <img src="film-18.jpg" alt="Film still 18" loading="lazy"/>
+        <img src="film-19.jpg" alt="Film still 19" loading="lazy"/>
+        <img src="film-20.jpg" alt="Film still 20" loading="lazy"/>
+      </div>
+    </div>
+  </div>
+
   <div id="page-writings" class="page">
     <div class="inner-page"></div>
   </div>
 
   <div id="page-readings" class="page">
-    <div class="inner-page"></div>
+    <div class="inner-page">
+      <p style="max-width:600px;line-height:1.85;font-size:1.05rem;">All time favorites include Bel-Ami by Guy de Maupassant, Au Bonheur des Dames by Emile Zola, and essentially all of Walter Isaacson's biographies.</p>
+      <p style="max-width:600px;margin-top:1.6rem;font-size:1.05rem;"><strong style="text-decoration:underline;">2026:</strong></p>
+      <ul style="max-width:600px;margin-top:.6rem;padding-left:1.4rem;font-size:1.05rem;line-height:1.85;">
+        <li>The Infinity Machine: Demis Hassabis, DeepMind and the Quest for Superintelligence &mdash; Sebastian Mallaby</li>
+      </ul>
+    </div>
   </div>
 
-  <div id="page-music" class="page">
+  <div id="page-projects" class="page">
     <div class="inner-page"></div>
   </div>
 
@@ -149,11 +184,6 @@
 
   <div id="page-veil"></div>
   <div id="map-tooltip"></div>
-
-  <footer>
-    <span>2025 Francesca Gnuva</span>
-    <a href="mailto:hello@francescagnuva.com">hello@francescagnuva.com</a>
-  </footer>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
@@ -196,7 +226,7 @@
   var CAT_COLORS={"Museum":"#8e44ad","Restaurant":"#e74c3c","Bar":"#2c3e50","Cafe":"#c0835a","Coffee":"#c0835a","Park":"#27ae60","Bookshop":"#2980b9","Breakfast":"#e67e22"};
   function colorForCat(c){return CAT_COLORS[c]||"#555";}
   var leafletMap=null;
-  var NAV_PAGES=["experiences","art","writings","readings","music"];
+  var NAV_PAGES=["experiences","art","film","writings","readings","projects"];
 
   function buildCityMap(cityName){
     var city=CITIES[cityName];
@@ -282,6 +312,48 @@
   </script>
 
   <script>
+  (function(){
+    var canvas=document.getElementById("cosmos-canvas");
+    var ctx=canvas.getContext("2d");
+    var dpr=window.devicePixelRatio||1;
+    function drawStars(){
+      var host=document.getElementById("page-home");
+      var w=host.clientWidth,h=host.clientHeight;
+      if(!w||!h)return;
+      canvas.width=w*dpr;canvas.height=h*dpr;
+      canvas.style.width=w+"px";canvas.style.height=h+"px";
+      ctx.setTransform(dpr,0,0,dpr,0,0);
+      ctx.clearRect(0,0,w,h);
+      var nebulae=[
+        {x:.18,y:.22,r:.42,c:"rgba(120,90,210,0.14)"},
+        {x:.82,y:.18,r:.36,c:"rgba(60,150,200,0.12)"},
+        {x:.65,y:.85,r:.48,c:"rgba(200,90,150,0.09)"}
+      ];
+      nebulae.forEach(function(n){
+        var g=ctx.createRadialGradient(w*n.x,h*n.y,0,w*n.x,h*n.y,Math.max(w,h)*n.r);
+        g.addColorStop(0,n.c);g.addColorStop(1,"rgba(0,0,0,0)");
+        ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
+      });
+      var starCount=Math.floor((w*h)/2600);
+      for(var i=0;i<starCount;i++){
+        var x=Math.random()*w,y=Math.random()*h,r=Math.random()*1.3+.2;
+        var op=Math.random()*0.75+0.15;
+        ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);
+        ctx.fillStyle="rgba(255,255,255,"+op.toFixed(2)+")";
+        ctx.fill();
+      }
+    }
+    drawStars();
+    window.addEventListener("resize",drawStars);
+    var origShowPage=window.showPage;
+    window.showPage=function(id,push){
+      origShowPage(id,push);
+      if(id==="home")setTimeout(drawStars,50);
+    };
+  })();
+  </script>
+
+  <script>
   (async function(){
     var wrap=document.getElementById("globe-wrap");
     var svgEl=document.getElementById("globe-svg");
@@ -292,27 +364,65 @@
     var path=d3.geoPath().projection(proj);
     var defs=svg.append("defs");
     defs.append("clipPath").attr("id","globe-clip").append("circle").attr("cx",SIZE/2).attr("cy",SIZE/2).attr("r",R);
-    var g1=defs.append("radialGradient").attr("id","sphere-grad").attr("cx","40%").attr("cy","38%").attr("r","60%");
-    g1.append("stop").attr("offset","0%").attr("stop-color","#e8f6fc");
-    g1.append("stop").attr("offset","100%").attr("stop-color","#9ec8e0");
-    svg.append("circle").attr("cx",SIZE/2).attr("cy",SIZE/2).attr("r",R).attr("fill","url(#sphere-grad)");
+
+    var atmoBlur=defs.append("filter").attr("id","atmo-blur").attr("x","-50%").attr("y","-50%").attr("width","200%").attr("height","200%");
+    atmoBlur.append("feGaussianBlur").attr("stdDeviation",4);
+    svg.append("circle").attr("cx",SIZE/2).attr("cy",SIZE/2).attr("r",R+3).attr("fill","none")
+      .attr("stroke","#9fd4f0").attr("stroke-width",5).attr("opacity",.55)
+      .attr("filter","url(#atmo-blur)").style("pointer-events","none");
+
+    var oceanGrad=defs.append("radialGradient").attr("id","ocean-grad").attr("cx","38%").attr("cy","34%").attr("r","72%");
+    oceanGrad.append("stop").attr("offset","0%").attr("stop-color","#cdeefb");
+    oceanGrad.append("stop").attr("offset","50%").attr("stop-color","#4f9fca");
+    oceanGrad.append("stop").attr("offset","100%").attr("stop-color","#0a3a5c");
+    svg.append("circle").attr("cx",SIZE/2).attr("cy",SIZE/2).attr("r",R).attr("fill","url(#ocean-grad)");
+
     var g=svg.append("g").attr("clip-path","url(#globe-clip)");
     var grat=d3.geoGraticule();
-    var gratP=g.append("path").datum(grat()).attr("fill","none").attr("stroke","#a0c8df").attr("stroke-width",.4).attr("opacity",.6);
+    var gratP=g.append("path").datum(grat()).attr("fill","none").attr("stroke","#a9d8ee").attr("stroke-width",.3).attr("opacity",.3);
+
+    var reliefFilter=defs.append("filter").attr("id","relief").attr("x","-15%").attr("y","-15%").attr("width","130%").attr("height","130%");
+    reliefFilter.append("feTurbulence").attr("type","fractalNoise").attr("baseFrequency","0.035 0.05").attr("numOctaves",5).attr("seed",7).attr("result","noise");
+    var diffLight=reliefFilter.append("feDiffuseLighting").attr("in","noise").attr("surface-scale",2.4).attr("diffuse-constant",1.15).attr("lighting-color","#ffffff").attr("result","light");
+    diffLight.append("feDistantLight").attr("azimuth",235).attr("elevation",55);
+    reliefFilter.append("feBlend").attr("in","SourceGraphic").attr("in2","light").attr("mode","multiply").attr("result","shaded");
+    reliefFilter.append("feComposite").attr("in","shaded").attr("in2","SourceGraphic").attr("operator","in");
+
     var world=await d3.json("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json");
     var countries=topojson.feature(world,world.objects.countries);
+
+    var LAND_COLORS=["#7c9c5e","#8fa863","#6f8f52","#9c9a5f","#87995a","#749167"];
+    function hashId(id){var n=Number(id)||0;n=(n<<13)^n;return Math.abs((n*(n*n*15731+789221)+1376312589));}
+    function landColor(d){
+      if(d.id===10)return "#eef3f6";
+      return LAND_COLORS[hashId(d.id)%LAND_COLORS.length];
+    }
+
     var cPaths=g.selectAll(".country").data(countries.features).join("path").attr("class","country")
-      .attr("fill",function(d){return d.id==250?"#a8d8ea":d.id==840?"#ffb7c5":"#d0e8ca";})
-      .attr("stroke","#8ab88a").attr("stroke-width",.35);
-    var sg=defs.append("radialGradient").attr("id","shade-grad").attr("cx","68%").attr("cy","68%").attr("r","60%");
-    sg.append("stop").attr("offset","0%").attr("stop-color","rgba(0,0,60,0.18)");
+      .attr("fill",landColor).attr("stroke","#4d6b45").attr("stroke-width",.25).attr("opacity",.93)
+      .style("filter","url(#relief)");
+
+    var cloudsG=g.append("g").attr("opacity",.5);
+    var clouds=d3.range(24).map(function(){return {lon:Math.random()*360-180,lat:Math.random()*150-75,rx:8+Math.random()*20,ry:4+Math.random()*8};});
+    function drawClouds(){
+      cloudsG.selectAll("ellipse").data(clouds).join("ellipse")
+        .attr("cx",function(d){var c=proj([d.lon,d.lat]);return c?c[0]:-9999;})
+        .attr("cy",function(d){var c=proj([d.lon,d.lat]);return c?c[1]:-9999;})
+        .attr("rx",function(d){return d.rx;}).attr("ry",function(d){return d.ry;})
+        .attr("fill","white").style("filter","blur(2.5px)");
+    }
+
+    var sg=defs.append("radialGradient").attr("id","shade-grad").attr("cx","66%").attr("cy","66%").attr("r","65%");
+    sg.append("stop").attr("offset","0%").attr("stop-color","rgba(0,0,40,0.3)");
     sg.append("stop").attr("offset","100%").attr("stop-color","rgba(0,0,0,0)");
     g.append("circle").attr("cx",SIZE/2).attr("cy",SIZE/2).attr("r",R).attr("fill","url(#shade-grad)").style("pointer-events","none");
-    var sh=defs.append("radialGradient").attr("id","sheen-grad").attr("cx","32%").attr("cy","28%").attr("r","38%");
-    sh.append("stop").attr("offset","0%").attr("stop-color","rgba(255,255,255,0.28)");
+
+    var sh=defs.append("radialGradient").attr("id","sheen-grad").attr("cx","30%").attr("cy","26%").attr("r","40%");
+    sh.append("stop").attr("offset","0%").attr("stop-color","rgba(255,255,255,0.35)");
     sh.append("stop").attr("offset","100%").attr("stop-color","rgba(255,255,255,0)");
     svg.append("circle").attr("cx",SIZE/2).attr("cy",SIZE/2).attr("r",R).attr("fill","url(#sheen-grad)").style("pointer-events","none");
-    svg.append("circle").attr("cx",SIZE/2).attr("cy",SIZE/2).attr("r",R).attr("fill","none").attr("stroke","rgba(100,140,160,0.4)").attr("stroke-width",1.2).style("pointer-events","none");
+    svg.append("circle").attr("cx",SIZE/2).attr("cy",SIZE/2).attr("r",R).attr("fill","none").attr("stroke","rgba(70,110,140,0.5)").attr("stroke-width",1).style("pointer-events","none");
+
     var pins=[
       {name:"San Francisco",lat:37.7749,lon:-122.4194,type:"home"},
       {name:"New York City",lat:40.7128,lon:-74.0060,type:"spot"},
@@ -348,7 +458,7 @@
         .attr("fill","none").attr("stroke","#8e44ad").attr("stroke-width",1.5).attr("opacity",.8)
         .transition().duration(1400).attr("r",22).attr("opacity",0).remove();
     },1600);
-    function redraw(){cPaths.attr("d",path);gratP.attr("d",path(grat()));drawPins();}
+    function redraw(){cPaths.attr("d",path);gratP.attr("d",path(grat()));drawPins();drawClouds();}
     redraw();
     var lp=null,dd=0;
     svg.call(d3.drag()
