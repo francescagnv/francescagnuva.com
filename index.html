@@ -64,6 +64,8 @@
     .popup-name{font-weight:500;font-size:1.05rem}
     .popup-cat{font-style:italic;opacity:.6;font-size:.88rem}
     .popup-note{margin-top:.3rem;font-size:.92rem;opacity:.8}
+    .popup-link{margin-top:.4rem}
+    .popup-link a{font-family:"Roboto Mono",monospace;font-size:.72rem;letter-spacing:.03em;color:#1a1a12;text-decoration:none;border-bottom:1px solid currentColor}
     .spot-dot{width:14px;height:14px;border-radius:50%;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,.25)}
     @media(max-width:700px){.city-layout{flex-direction:column}.city-sidebar{width:100%;border-left:none;border-top:1.5px solid #1a1a12;max-height:240px}}
     footer{border-top:1.5px solid #1a1a12;padding:1.8rem 6vw;display:flex;justify-content:space-between;font-size:.85rem;font-style:italic;opacity:.5;flex-wrap:wrap;gap:.5rem;flex-shrink:0}
@@ -190,15 +192,15 @@
   <script>
   var CITIES = {
     "San Francisco":{lat:37.7749,lon:-122.4194,zoom:13,spots:[
-      {name:"Tartine Bakery",cat:"Cafe",emoji:"",lat:37.7612,lon:-122.4240,note:"Best morning bun in the city."},
+      {name:"Tartine Bakery",cat:"Cafe",emoji:"",lat:37.7612,lon:-122.4240,note:"Best morning bun in the city.",url:"https://tartinebakery.com"},
       {name:"Dolores Park",cat:"Park",emoji:"",lat:37.7596,lon:-122.4269,note:"Picnics with a skyline view."},
-      {name:"SFMOMA",cat:"Museum",emoji:"",lat:37.7857,lon:-122.4011,note:"Essential contemporary art."},
+      {name:"SFMOMA",cat:"Museum",emoji:"",lat:37.7857,lon:-122.4011,note:"Essential contemporary art.",url:"https://www.sfmoma.org"},
       {name:"Nopa",cat:"Restaurant",emoji:"",lat:37.7757,lon:-122.4367,note:"Late-night wood-fired cooking."},
       {name:"City Lights Bookstore",cat:"Bookshop",emoji:"",lat:37.7979,lon:-122.4066,note:"Beat poetry birthplace."},
       {name:"Sightglass Coffee",cat:"Coffee",emoji:"",lat:37.7754,lon:-122.4094,note:"Beautiful SoMa roastery."}
     ]},
     "New York City":{lat:40.7128,lon:-74.0060,zoom:12,spots:[
-      {name:"The Met",cat:"Museum",emoji:"",lat:40.7794,lon:-73.9632,note:"A whole day, every time."},
+      {name:"The Met",cat:"Museum",emoji:"",lat:40.7794,lon:-73.9632,note:"A whole day, every time.",url:"https://www.metmuseum.org"},
       {name:"Russ and Daughters",cat:"Cafe",emoji:"",lat:40.7220,lon:-73.9874,note:"Legendary Lower East Side deli."},
       {name:"Prospect Park",cat:"Park",emoji:"",lat:40.6602,lon:-73.9690,note:"Brooklyn breathing room."},
       {name:"Via Carota",cat:"Restaurant",emoji:"",lat:40.7333,lon:-74.0027,note:"Perfect Italian in the West Village."},
@@ -233,13 +235,13 @@
     if(!city)return;
     if(leafletMap){leafletMap.remove();leafletMap=null;}
     document.getElementById("spots-list").innerHTML="";
-    leafletMap=L.map("city-map",{zoomControl:true}).setView([city.lat,city.lon],city.zoom);
-    L.tileLayer("https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png",{attribution:"Stadia Maps / OpenStreetMap",maxZoom:20}).addTo(leafletMap);
+    leafletMap=L.map("city-map",{zoomControl:true,scrollWheelZoom:true}).setView([city.lat,city.lon],city.zoom+1);
+    L.tileLayer("https://tiles.stadiamaps.com/tiles/stamen_toner_lite/{z}/{x}/{y}{r}.png",{attribution:"Stadia Maps / Stamen / OpenStreetMap",maxZoom:20}).addTo(leafletMap);
     city.spots.forEach(function(spot){
       var color=colorForCat(spot.cat);
       var icon=L.divIcon({className:"",html:"<div class='spot-dot' style='background:"+color+"'></div>",iconSize:[14,14],iconAnchor:[7,7],popupAnchor:[0,-10]});
       var marker=L.marker([spot.lat,spot.lon],{icon:icon}).addTo(leafletMap);
-      marker.bindPopup("<div class='popup-name'>"+spot.name+"</div><div class='popup-cat'>"+spot.cat+"</div>"+(spot.note?"<div class='popup-note'>"+spot.note+"</div>":""),{maxWidth:220});
+      marker.bindPopup("<div class='popup-name'>"+spot.name+"</div><div class='popup-cat'>"+spot.cat+"</div>"+(spot.note?"<div class='popup-note'>"+spot.note+"</div>":"")+(spot.url?"<div class='popup-link'><a href='"+spot.url+"' target='_blank' rel='noopener'>visit website &#8599;</a></div>":""),{maxWidth:220});
       var item=document.createElement("div");
       item.className="spot-item";
       item.innerHTML="<span class='spot-emoji'>"+spot.emoji+"</span><div class='spot-info'><div class='spot-name'>"+spot.name+"</div><div class='spot-cat'>"+spot.cat+"</div></div>";
@@ -429,25 +431,32 @@
       {name:"Boston",lat:42.3601,lon:-71.0589,type:"spot"},
       {name:"Austin",lat:30.2672,lon:-97.7431,type:"spot"}
     ];
-    var pulseL=g.append("g"),dotL=g.append("g"),labL=g.append("g"),isDrag=false;
+    var pulseL=g.append("g"),shadowL=g.append("g"),dotL=g.append("g"),labL=g.append("g"),isDrag=false;
     function vis(lon,lat){var r=proj.rotate();return d3.geoDistance([lon,lat],[-r[0],-r[1]])<Math.PI/2;}
+    function pinPath(r){
+      var h=r*2.6,armY=-h*0.62;
+      return "M0,0 Q"+(-r*1.15)+","+(armY*0.68)+" "+(-r)+","+armY+" A"+r+","+r+" 0 1,1 "+r+","+armY+" Q"+(r*1.15)+","+(armY*0.68)+" 0,0 Z";
+    }
     function drawPins(){
-      dotL.selectAll("*").remove();labL.selectAll("*").remove();
+      dotL.selectAll("*").remove();labL.selectAll("*").remove();shadowL.selectAll("*").remove();
       pins.forEach(function(pin){
         if(!vis(pin.lon,pin.lat))return;
-        var c=proj([pin.lon,pin.lat]),x=c[0],y=c[1],isH=pin.type==="home";
-        var dot=dotL.append("circle").attr("cx",x).attr("cy",y).attr("r",isH?6:5)
-          .attr("fill",isH?"#8e44ad":"#c0392b").attr("stroke","white").attr("stroke-width",1.8).style("cursor","pointer");
-        (function(p){
-          dot.on("mouseover",function(){if(isDrag)return;tooltip.style.display="block";tooltip.textContent=p.name;})
+        var c=proj([pin.lon,pin.lat]),x=c[0],y=c[1],isH=pin.type==="home",r=isH?7:5.5;
+        shadowL.append("ellipse").attr("cx",x).attr("cy",y+1).attr("rx",r*0.75).attr("ry",r*0.3)
+          .attr("fill","rgba(0,0,0,0.28)").style("filter","blur(1px)");
+        var grp=dotL.append("g").attr("transform","translate("+x+","+y+")").style("cursor","pointer");
+        grp.append("path").attr("d",pinPath(r)).attr("fill","#1a1a12").attr("stroke","#fffafc").attr("stroke-width",1);
+        grp.append("circle").attr("cx",0).attr("cy",-r*2.6*0.62+0.5).attr("r",r*0.38).attr("fill","#fffafc");
+        (function(p,grp){
+          grp.on("mouseover",function(){if(isDrag)return;tooltip.style.display="block";tooltip.textContent=p.name;})
              .on("mousemove",function(e){tooltip.style.left=(e.clientX+14)+"px";tooltip.style.top=(e.clientY-10)+"px";})
              .on("mouseout",function(){tooltip.style.display="none";})
              .on("click",function(){if(isDrag)return;tooltip.style.display="none";openCity(p.name);});
-        })(pin);
-        labL.append("text").attr("x",x+9).attr("y",y+4).text(pin.name)
-          .attr("font-family","EB Garamond,serif").attr("font-size",isH?"11px":"10px")
-          .attr("font-style","italic").attr("fill","#1a1a12")
-          .attr("paint-order","stroke").attr("stroke","white").attr("stroke-width",3)
+        })(pin,grp);
+        labL.append("text").attr("x",x+r+6).attr("y",y+3).text(pin.name)
+          .attr("font-family","'Roboto Mono',monospace").attr("font-size",isH?"10px":"9px")
+          .attr("letter-spacing",".02em").attr("fill","#1a1a12")
+          .attr("paint-order","stroke").attr("stroke","#fffafc").attr("stroke-width",3)
           .style("pointer-events","none");
       });
     }
