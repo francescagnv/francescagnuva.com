@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Francesca Gnuva</title>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Roboto+Mono:wght@400;500&family=Cormorant+Garamond:wght@500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css"/>
+  <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%}
+    body{background:#fffafc;color:#1a1a12;font-family:"EB Garamond",Georgia,serif;font-size:18px;line-height:1.6;min-height:100vh;display:flex;flex-direction:column}
+    body::before{content:"";position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:1000;opacity:.4}
+    header{padding:3rem 6vw 0;border-bottom:1.5px solid #1a1a12;flex-shrink:0}
+    .header-top{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:1rem;padding-bottom:1.2rem}
+    .site-name{font-size:clamp(2rem,5vw,3.8rem);font-weight:600;letter-spacing:-.01em;line-height:1;cursor:pointer;color:inherit;background:none;border:none;font-family:"Cormorant Garamond",serif;text-transform:lowercase}
+    nav{display:flex;gap:2rem;padding-top:.1rem;flex-wrap:wrap}
+    nav button{background:none;border:none;font-family:"Roboto Mono",monospace;font-size:.75rem;letter-spacing:.03em;text-transform:lowercase;color:#1a1a12;cursor:pointer;padding:.65rem 0;position:relative;opacity:.55;transition:opacity .2s}
+    nav button::after{content:"";position:absolute;bottom:0;left:0;right:0;height:2px;background:#1a1a12;transform:scaleX(0);transform-origin:left;transition:transform .22s ease}
+    nav button:hover,nav button.active{opacity:1}
+    nav button:hover::after,nav button.active::after{transform:scaleX(1)}
+    .page{display:none;flex:1;flex-direction:column;opacity:0;transition:opacity .35s ease}
+    .page.active{display:flex}
+    .page.visible{opacity:1}
+    #page-veil{position:fixed;inset:0;background:#fffafc;opacity:0;pointer-events:none;z-index:900;transition:opacity .25s ease}
+    #page-veil.covering{opacity:1;pointer-events:all}
+    #page-home{align-items:center;justify-content:center;padding:2.5rem 4vw 4rem;position:relative;overflow:hidden;background:radial-gradient(ellipse at 50% 32%,#0d1530 0%,#02040c 78%)}
+    #cosmos-canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+    #globe-wrap{position:relative;z-index:2;width:min(600px,86vw);aspect-ratio:1/1}
+    #globe-svg{width:100%;height:100%;cursor:grab;display:block}
+    #globe-svg:active{cursor:grabbing}
+    #map-tooltip{display:none;position:fixed;background:rgba(255,255,255,.93);border:1px solid #1a1a12;padding:6px 12px;font-family:"EB Garamond",serif;font-size:.95rem;pointer-events:none;z-index:500}
+    .inner-page{padding:4rem 8vw 6rem;max-width:860px}
+    .art-item{display:flex;gap:3rem;align-items:flex-start;margin-bottom:4rem}
+    .art-item img{width:min(340px,55vw);flex-shrink:0;display:block}
+    .art-meta{padding-top:.4rem}
+    .art-title{font-size:1.15rem;font-style:italic;margin-bottom:.3rem}
+    .art-date{font-family:"Roboto Mono",monospace;font-size:.72rem;letter-spacing:.08em;opacity:.45}
+    @media(max-width:600px){.art-item{flex-direction:column;gap:1.2rem}.art-item img{width:100%}}
+    #page-film .inner-page{max-width:1100px}
+    .film-grid{column-count:3;column-gap:6px}
+    .film-grid img{width:100%;display:block;margin:0 0 6px;border:none;border-radius:0;box-shadow:none;outline:none}
+    @media(max-width:900px){.film-grid{column-count:2}}
+    @media(max-width:560px){.film-grid{column-count:1}}
+    #page-city{flex-direction:column}
+    .city-header{padding:2rem 6vw 1.5rem;border-bottom:1px solid rgba(26,26,18,.18);display:flex;align-items:center;gap:1.5rem}
+    .city-back{background:none;border:none;cursor:pointer;font-family:"Roboto Mono",monospace;font-size:.75rem;color:#1a1a12;opacity:.5;transition:opacity .2s}
+    .city-back:hover{opacity:1}
+    .city-title{font-size:clamp(1.6rem,3.5vw,2.6rem);font-weight:400;font-style:italic}
+    .city-layout{display:flex;flex:1;min-height:0}
+    #city-map{flex:1;min-height:520px;z-index:1;position:relative;background:#dfe6e0}
+    .city-sidebar{width:280px;flex-shrink:0;border-left:1.5px solid #1a1a12;display:flex;flex-direction:column;overflow:hidden;background:rgba(255,250,252,.8)}
+    .sidebar-title{padding:1.4rem 1.5rem 1rem;font-size:.8rem;letter-spacing:.14em;text-transform:uppercase;opacity:.45;border-bottom:1px solid rgba(26,26,18,.12);font-family:"Roboto Mono",monospace}
+    .spots-list{flex:1;overflow-y:auto;padding:.5rem 0}
+    .spot-item{padding:.9rem 1.5rem;border-bottom:1px solid rgba(26,26,18,.08);cursor:pointer;transition:background .15s;display:flex;gap:.8rem;align-items:flex-start}
+    .spot-item:hover,.spot-item.active{background:rgba(255,255,255,.5)}
+    .spot-emoji{font-size:1rem;margin-top:.1rem;flex-shrink:0}
+    .spot-name{font-size:1rem;font-weight:500;line-height:1.2}
+    .spot-cat{font-size:.78rem;font-style:italic;opacity:.5;margin-top:.1rem}
+    .maplibregl-popup-content{font-family:"EB Garamond",serif!important;border-radius:0!important;border:1px solid #1a1a12!important;box-shadow:4px 4px 0 rgba(26,26,18,.08)!important;background:rgba(255,250,252,.97)!important;padding:10px 14px!important}
+    .maplibregl-popup-anchor-bottom .maplibregl-popup-tip{border-top-color:rgba(255,250,252,.97)!important}
+    .maplibregl-popup-anchor-top .maplibregl-popup-tip{border-bottom-color:rgba(255,250,252,.97)!important}
+    .maplibregl-popup-anchor-left .maplibregl-popup-tip{border-right-color:rgba(255,250,252,.97)!important}
+    .maplibregl-popup-anchor-right .maplibregl-popup-tip{border-left-color:rgba(255,250,252,.97)!important}
+    .maplibregl-popup-close-button{font-family:"Roboto Mono",monospace;font-size:1rem;color:#1a1a12;opacity:.5}
+    .maplibregl-popup-close-button:hover{opacity:1;background:none}
+    .maplibregl-ctrl-attrib{font-family:"Roboto Mono",monospace;font-size:.68rem}
+    .popup-name{font-weight:500;font-size:1.05rem}
+    .popup-cat{font-style:italic;opacity:.6;font-size:.88rem}
+    .popup-note{margin-top:.3rem;font-size:.92rem;opacity:.8}
+    .popup-link{margin-top:.4rem}
+    .popup-link a{font-family:"Roboto Mono",monospace;font-size:.72rem;letter-spacing:.03em;color:#1a1a12;text-decoration:none;border-bottom:1px solid currentColor}
+    .spot-dot{width:14px;height:14px;border-radius:50%;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,.35);cursor:pointer}
+    #city-map-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#dfe6e0;font-family:"Roboto Mono",monospace;font-size:.75rem;letter-spacing:.05em;opacity:.5;z-index:2;pointer-events:none;transition:opacity .3s ease}
+    #city-map-loading.hidden{opacity:0}
+    @media(max-width:700px){.city-layout{flex-direction:column}.city-sidebar{width:100%;border-left:none;border-top:1.5px solid #1a1a12;max-height:240px}}
+    footer{border-top:1.5px solid #1a1a12;padding:1.8rem 6vw;display:flex;justify-content:space-between;font-size:.85rem;font-style:italic;opacity:.5;flex-wrap:wrap;gap:.5rem;flex-shrink:0}
+    footer a{color:#1a1a12;text-decoration:none;border-bottom:1px solid currentColor}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-top">
+      <button class="site-name" onclick="showPage('home')">Francesca Gnuva</button>
+    </div>
+    <nav>
+      <button id="nav-experiences" onclick="showPage('experiences')">experience</button>
+      <button id="nav-art" onclick="showPage('art')">art</button>
+      <button id="nav-film" onclick="showPage('film')">film</button>
+      <button id="nav-writings" onclick="showPage('writings')">writings</button>
+      <button id="nav-readings" onclick="showPage('readings')">readings</button>
+      <button id="nav-projects" onclick="showPage('projects')">projects</button>
+    </nav>
+  </header>
+
+  <div id="page-home" class="page active visible">
+    <canvas id="cosmos-canvas"></canvas>
+    <div id="globe-wrap"><svg id="globe-svg"></svg></div>
+  </div>
+
+  <div id="page-experiences" class="page">
+    <div class="inner-page">
+      <p style="max-width:600px;line-height:1.85;font-size:1.05rem;">hi! I&rsquo;m francesca. I was born and raised in nice, france. Growing up, I was obsessed with math and physics, but also philosophy and the arts. I skied competitively and sketched in my free time. After graduating from high school, I went to columbia (go lions!), where I majored in applied mathematics and also spent a lot of time in and around the history and visual arts departments. My two favorite math classes were Analysis and Optimization (MATH UN2500) and Complex Analysis (MATH UN3007). My senior applied mathematics <a href="https://www.linkedin.com/posts/francesca-gnuva-23b389174_gender-bias-and-homophily-in-professional-activity-6873722919759962112-wUiD?utm_source=share&amp;utm_medium=member_desktop&amp;rcm=ACoAAClYqg8BeNqPvZq3I6N0pjgswzUHG4zzJJg" target="_blank" rel="noopener" style="color:inherit;">thesis</a> research (supervised by Chris Wiggins) focused on the evolution of bias and homophily in professional hierarchies and impact to the percentage of women rising to the upper echelons of certain industries (academia, finance, law, medicine). I worked in finance for a little over three years (investment banking at rothschild &amp; co in new york / private equity at TA Associates in boston, where I sourced our investment in kline hill partners). I transitioned into tech when I began investing at hummingbird in 2025. After falling in love with san francisco, I joined audacious ventures&rsquo; investment team in SF in early 2026.</p>
+      <p style="max-width:600px;line-height:1.85;font-size:1.05rem;margin-top:1.5rem;">I love meeting talented engineers and entrepreneurs building at the frontier, which is one of the reasons I feel privileged to work in venture. I also love meeting new people in general, so please drop me a note (<a href="mailto:francesca@audacious.co" style="color:inherit;">francesca@audacious.co</a>!) if you&rsquo;d like to grab coffee or go on a walk :)</p>
+    </div>
+  </div>
+
+  <div id="page-art" class="page">
+    <div class="inner-page">
+      <div class="art-item">
+        <img src="roger.jpeg" alt="Roger"/>
+        <div class="art-meta">
+          <div class="art-title"><em>Roger</em></div>
+          <div class="art-date">April 2022 &middot; NYC</div>
+        </div>
+      </div>
+      <div class="art-item">
+        <img src="kevin.jpeg" alt="Kevin"/>
+        <div class="art-meta">
+          <div class="art-title"><em>Kevin</em></div>
+          <div class="art-date">2022 &middot; Gospel, NYC</div>
+        </div>
+      </div>
+      <div class="art-item">
+        <img src="le-yaca.jpeg" alt="le Yaca"/>
+        <div class="art-meta">
+          <div class="art-title"><em>le Yaca</em></div>
+          <div class="art-date">2022 &middot; St Tropez</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="page-film" class="page">
+    <div class="inner-page">
+      <div class="film-grid">
+        <img src="film-01.jpg" alt="Film still 1" loading="lazy"/>
+        <img src="film-02.jpg" alt="Film still 2" loading="lazy"/>
+        <img src="film-03.jpg" alt="Film still 3" loading="lazy"/>
+        <img src="film-04.jpg" alt="Film still 4" loading="lazy"/>
+        <img src="film-05.jpg" alt="Film still 5" loading="lazy"/>
+        <img src="film-06.jpg" alt="Film still 6" loading="lazy"/>
+        <img src="film-07.jpg" alt="Film still 7" loading="lazy"/>
+        <img src="film-08.jpg" alt="Film still 8" loading="lazy"/>
+        <img src="film-09.jpg" alt="Film still 9" loading="lazy"/>
+        <img src="film-10.jpg" alt="Film still 10" loading="lazy"/>
+        <img src="film-11.jpg" alt="Film still 11" loading="lazy"/>
+        <img src="film-12.jpg" alt="Film still 12" loading="lazy"/>
+        <img src="film-13.jpg" alt="Film still 13" loading="lazy"/>
+        <img src="film-14.jpg" alt="Film still 14" loading="lazy"/>
+        <img src="film-15.jpg" alt="Film still 15" loading="lazy"/>
+        <img src="film-16.jpg" alt="Film still 16" loading="lazy"/>
+        <img src="film-17.jpg" alt="Film still 17" loading="lazy"/>
+        <img src="film-18.jpg" alt="Film still 18" loading="lazy"/>
+        <img src="film-19.jpg" alt="Film still 19" loading="lazy"/>
+        <img src="film-20.jpg" alt="Film still 20" loading="lazy"/>
+      </div>
+    </div>
+  </div>
+
+  <div id="page-writings" class="page">
+    <div class="inner-page"></div>
+  </div>
+
+  <div id="page-readings" class="page">
+    <div class="inner-page">
+      <p style="max-width:600px;line-height:1.85;font-size:1.05rem;">All time favorites include Bel-Ami by Guy de Maupassant, Au Bonheur des Dames by Emile Zola, and essentially all of Walter Isaacson's biographies.</p>
+      <p style="max-width:600px;margin-top:1.6rem;font-size:1.05rem;"><strong style="text-decoration:underline;">2026:</strong></p>
+      <ul style="max-width:600px;margin-top:.6rem;padding-left:1.4rem;font-size:1.05rem;line-height:1.85;">
+        <li>The Infinity Machine: Demis Hassabis, DeepMind and the Quest for Superintelligence &mdash; Sebastian Mallaby</li>
+      </ul>
+    </div>
+  </div>
+
+  <div id="page-projects" class="page">
+    <div class="inner-page"></div>
+  </div>
+
+  <div id="page-city" class="page">
+    <div class="city-header">
+      <button class="city-back" onclick="showPage('home')">back to globe</button>
+      <h2 class="city-title" id="city-page-title"></h2>
+    </div>
+    <div class="city-layout">
+      <div id="city-map">
+        <div id="city-map-loading">loading map&hellip;</div>
+      </div>
+      <div class="city-sidebar">
+        <div class="sidebar-title">favourite spots</div>
+        <div class="spots-list" id="spots-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="page-veil"></div>
+  <div id="map-tooltip"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+  <script>
+  // Each city carries its map center/zoom plus a starting pitch/bearing tuned
+  // for a nice 3D approach angle, and a list of favourite spots to pin.
+  var CITIES = {
+    "San Francisco":{lat:37.7749,lon:-122.4194,zoom:15.4,pitch:64,bearing:-21,spots:[]},
+    "New York City":{lat:40.7128,lon:-74.0060,zoom:15.6,pitch:60,bearing:-17,spots:[]},
+    "Boston":{lat:42.3601,lon:-71.0589,zoom:15.3,pitch:58,bearing:8,spots:[]},
+    "Austin":{lat:30.2672,lon:-97.7431,zoom:15.1,pitch:55,bearing:19,spots:[]}
+  };
+
+  var CAT_COLORS={"Museum":"#8e44ad","Restaurant":"#e74c3c","Bar":"#2c3e50","Cafe":"#c0835a","Coffee":"#c0835a","Park":"#27ae60","Bookshop":"#2980b9","Breakfast":"#e67e22"};
+  function colorForCat(c){return CAT_COLORS[c]||"#555";}
+  var cityMap=null;
+  var cityMarkers=[];
+  var NAV_PAGES=["experiences","art","film","writings","readings","projects"];
+
+  function buildCityMap(cityName){
+    var city=CITIES[cityName];
+    if(!city)return;
+
+    if(cityMap){cityMap.remove();cityMap=null;}
+    cityMarkers=[];
+    document.getElementById("spots-list").innerHTML="";
+    var loadingEl=document.getElementById("city-map-loading");
+    if(loadingEl){
+      loadingEl.classList.remove("hidden");
+      loadingEl.style.display="flex";
+      loadingEl.textContent="loading map…";
+    }
+
+    function showMapProblem(msg){
+      if(!loadingEl)return;
+      loadingEl.style.display="flex";
+      loadingEl.classList.remove("hidden");
+      loadingEl.style.opacity="1";
+      loadingEl.style.whiteSpace="pre-line";
+      loadingEl.style.textAlign="center";
+      loadingEl.style.padding="0 2rem";
+      loadingEl.textContent=msg;
+    }
+
+    if(typeof maplibregl==="undefined"){
+      // The maplibre-gl library itself never loaded (blocked script, offline, etc).
+      showMapProblem("map library failed to load.\ncheck your internet connection and reload —\nif it keeps happening, an ad blocker or\nprivacy extension may be blocking unpkg.com.");
+      return;
+    }
+
+    // A watchdog: if the style/tiles haven't finished loading after a few
+    // seconds, replace the silent blank/background block with an actual
+    // explanation instead of leaving it a mystery.
+    var settled=false;
+    var watchdog=setTimeout(function(){
+      if(settled)return;
+      showMapProblem("map is taking longer than expected to load.\nthis is usually an ad blocker or privacy extension\nblocking tiles.openfreemap.org — try disabling it\nfor this page, or open the browser console (right-click\n→ Inspect → Console) and tell Claude what error you see.");
+    },7000);
+
+    // OpenFreeMap's "Liberty" style: free, no API key, full street/building/POI
+    // detail (buildings render as 3D extrusions once zoomed in).
+    try{
+      cityMap=new maplibregl.Map({
+        container:"city-map",
+        style:"https://tiles.openfreemap.org/styles/liberty",
+        center:[city.lon,city.lat],
+        zoom:city.zoom,
+        pitch:city.pitch||60,
+        bearing:city.bearing||0,
+        antialias:true
+      });
+    }catch(err){
+      clearTimeout(watchdog);
+      showMapProblem("map failed to start: "+(err&&err.message?err.message:err)+"\nyour browser may not support WebGL.");
+      console.error("maplibre init failed",err);
+      return;
+    }
+
+    cityMap.addControl(new maplibregl.NavigationControl({visualizePitch:true}),"top-right");
+    cityMap.addControl(new maplibregl.ScaleControl({unit:"imperial"}),"bottom-left");
+
+    cityMap.on("load",function(){
+      settled=true;
+      clearTimeout(watchdog);
+      // Real elevation data (free, no key) for hills/terrain relief.
+      if(!cityMap.getSource("terrain-dem")){
+        cityMap.addSource("terrain-dem",{
+          type:"raster-dem",
+          tiles:["https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png"],
+          encoding:"terrarium",
+          tileSize:256,
+          maxzoom:15
+        });
+      }
+      cityMap.setTerrain({source:"terrain-dem",exaggeration:1.3});
+      cityMap.setSky({
+        "sky-color":"#b8d8f0",
+        "sky-horizon-blend":0.5,
+        "horizon-color":"#fdf6ee",
+        "horizon-fog-blend":0.5,
+        "fog-color":"#e8ecdf",
+        "fog-ground-blend":0.4
+      });
+      if(loadingEl){loadingEl.classList.add("hidden");}
+    });
+
+    cityMap.on("error",function(e){
+      var msg=e&&e.error&&e.error.message?e.error.message:"unknown error";
+      console.warn("city map error",e && e.error);
+      // A style-load failure (bad/blocked network response) means the map will
+      // never fire "load" -- surface it immediately instead of waiting on the
+      // watchdog, and include the actual error text so it's not a mystery.
+      if(/style|Failed to fetch|NetworkError|404|403/i.test(msg)&&!settled){
+        settled=true;
+        clearTimeout(watchdog);
+        showMapProblem("map failed to load: "+msg+"\nthis usually means tiles.openfreemap.org was\nblocked or unreachable (ad blocker, firewall,\nor offline). reload to try again.");
+      }
+    });
+
+    city.spots.forEach(function(spot,idx){
+      var color=colorForCat(spot.cat);
+      var el=document.createElement("div");
+      el.className="spot-dot";
+      el.style.background=color;
+
+      var popupHtml="<div class='popup-name'>"+spot.name+"</div><div class='popup-cat'>"+spot.cat+"</div>"+
+        (spot.note?"<div class='popup-note'>"+spot.note+"</div>":"")+
+        (spot.url?"<div class='popup-link'><a href='"+spot.url+"' target='_blank' rel='noopener'>visit website &#8599;</a></div>":"");
+      var popup=new maplibregl.Popup({offset:14,maxWidth:"220px"}).setHTML(popupHtml);
+
+      // opacityWhenCovered:"1" stops MapLibre's terrain-depth check from fading a
+      // pin just because it sits close to the modelled ground surface (common for
+      // ordinary street-level spots once real terrain is on). We deliberately do
+      // NOT call marker.setPopup()/rely on its built-in click-to-toggle, because
+      // that same depth check also silently blocks togglePopup() from opening the
+      // popup at all -- instead we open/close the popup ourselves below, on both
+      // the pin and the sidebar row, so it's never gated by that check.
+      var marker=new maplibregl.Marker({element:el,opacityWhenCovered:"1"}).setLngLat([spot.lon,spot.lat]).addTo(cityMap);
+      cityMarkers.push(marker);
+
+      function togglePopupManually(){
+        popup.setLngLat([spot.lon,spot.lat]);
+        if(popup.isOpen()){popup.remove();}else{popup.addTo(cityMap);}
+      }
+      el.addEventListener("click",function(e){e.stopPropagation();togglePopupManually();});
+
+      var item=document.createElement("div");
+      item.className="spot-item";
+      item.innerHTML="<span class='spot-emoji'>"+spot.emoji+"</span><div class='spot-info'><div class='spot-name'>"+spot.name+"</div><div class='spot-cat'>"+spot.cat+"</div></div>";
+      item.addEventListener("click",function(){
+        document.querySelectorAll(".spot-item").forEach(function(si){si.classList.remove("active");});
+        item.classList.add("active");
+        cityMap.flyTo({center:[spot.lon,spot.lat],zoom:17,pitch:65,bearing:city.bearing||0,essential:true,speed:0.9});
+        if(!popup.isOpen())togglePopupManually();
+      });
+      document.getElementById("spots-list").appendChild(item);
+    });
+
+    setTimeout(function(){if(cityMap)cityMap.resize();},120);
+  }
+
+  function doSwap(id,cityName){
+    document.querySelectorAll(".page").forEach(function(p){p.classList.remove("active","visible");});
+    document.querySelectorAll("nav button").forEach(function(b){b.classList.remove("active");});
+    var next=document.getElementById("page-"+id);
+    next.classList.add("active");
+    if(NAV_PAGES.indexOf(id)!==-1){document.getElementById("nav-"+id).classList.add("active");}
+    window.scrollTo({top:0,behavior:"instant"});
+    if(id==="city"&&cityName){document.getElementById("city-page-title").textContent=cityName;buildCityMap(cityName);}
+    requestAnimationFrame(function(){
+      document.getElementById("page-veil").classList.remove("covering");
+      requestAnimationFrame(function(){next.classList.add("visible");});
+    });
+  }
+
+  // Browsers refuse to change the URL path via the History API for a page
+  // opened as a local file (file:///.../index.html) -- pushState/replaceState
+  // throw a SecurityError there. That's fine on the real site (GitHub Pages,
+  // https), but when testing locally it must not be allowed to break page
+  // navigation. These wrappers swallow that specific failure so clicking
+  // around still works when you just double-click the file to open it.
+  function safePushState(state,url){
+    try{history.pushState(state,"",url);}catch(e){/* file:// origin -- ignore */}
+  }
+  function safeReplaceState(state,url){
+    try{history.replaceState(state,"",url);}catch(e){/* file:// origin -- ignore */}
+  }
+
+  function showPage(id,push){
+    if(push!==false)safePushState({page:id},(id==="home"?"/":"/"+id));
+    document.getElementById("page-veil").classList.add("covering");
+    setTimeout(function(){doSwap(id,null);},260);
+  }
+
+  function openCity(cityName,push){
+    if(push!==false)safePushState({page:"city",city:cityName},(window.location.origin+"/city/"+encodeURIComponent(cityName)));
+    document.getElementById("page-veil").classList.add("covering");
+    setTimeout(function(){doSwap("city",cityName);},260);
+  }
+
+  window.addEventListener("popstate",function(e){
+    var s=e.state;
+    if(!s){showPage("home",false);return;}
+    if(s.page==="city"&&s.city){openCity(s.city,false);}
+    else{showPage(s.page||"home",false);}
+  });
+
+  (function(){
+    var params=new URLSearchParams(window.location.search);
+    var p=params.get("p");
+    var path=p?decodeURIComponent(p).replace(/^\/|\/$/g,""):window.location.pathname.replace(/^\/|\/$/g,"")||"home";
+    if(p){safeReplaceState(null,(path==="home"?"/":"/"+path));}
+    if(path.indexOf("city/")===0){
+      var cn=decodeURIComponent(path.replace("city/",""));
+      if(CITIES[cn]){
+        safeReplaceState({page:"city",city:cn},(window.location.origin+"/city/"+encodeURIComponent(cn)));
+        document.querySelectorAll(".page").forEach(function(pg){pg.classList.remove("active","visible");});
+        var nx=document.getElementById("page-city");
+        nx.classList.add("active","visible");
+        document.getElementById("city-page-title").textContent=cn;
+        buildCityMap(cn);
+        return;
+      }
+    }
+    var id=NAV_PAGES.indexOf(path)!==-1?path:"home";
+    safeReplaceState({page:id},(id==="home"?"/":"/"+id));
+    if(id!=="home"){
+      document.querySelectorAll(".page").forEach(function(pg){pg.classList.remove("active","visible");});
+      document.querySelectorAll("nav button").forEach(function(b){b.classList.remove("active");});
+      var nx=document.getElementById("page-"+id);
+      nx.classList.add("active","visible");
+      document.getElementById("nav-"+id).classList.add("active");
+    }
+  })();
+  </script>
+
+  <script>
+  (function(){
+    var canvas=document.getElementById("cosmos-canvas");
+    var ctx=canvas.getContext("2d");
+    var dpr=window.devicePixelRatio||1;
+    function drawStars(){
+      var host=document.getElementById("page-home");
+      var w=host.clientWidth,h=host.clientHeight;
+      if(!w||!h)return;
+      canvas.width=w*dpr;canvas.height=h*dpr;
+      canvas.style.width=w+"px";canvas.style.height=h+"px";
+      ctx.setTransform(dpr,0,0,dpr,0,0);
+      ctx.clearRect(0,0,w,h);
+      var nebulae=[
+        {x:.18,y:.22,r:.42,c:"rgba(120,90,210,0.14)"},
+        {x:.82,y:.18,r:.36,c:"rgba(60,150,200,0.12)"},
+        {x:.65,y:.85,r:.48,c:"rgba(200,90,150,0.09)"}
+      ];
+      nebulae.forEach(function(n){
+        var g=ctx.createRadialGradient(w*n.x,h*n.y,0,w*n.x,h*n.y,Math.max(w,h)*n.r);
+        g.addColorStop(0,n.c);g.addColorStop(1,"rgba(0,0,0,0)");
+        ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
+      });
+      var starCount=Math.floor((w*h)/2600);
+      for(var i=0;i<starCount;i++){
+        var x=Math.random()*w,y=Math.random()*h,r=Math.random()*1.3+.2;
+        var op=Math.random()*0.75+0.15;
+        ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);
+        ctx.fillStyle="rgba(255,255,255,"+op.toFixed(2)+")";
+        ctx.fill();
+      }
+    }
+    drawStars();
+    window.addEventListener("resize",drawStars);
+    var origShowPage=window.showPage;
+    window.showPage=function(id,push){
+      origShowPage(id,push);
+      if(id==="home")setTimeout(drawStars,50);
+    };
+  })();
+  </script>
+
+  <script>
+  (async function(){
+    var wrap=document.getElementById("globe-wrap");
+    var svgEl=document.getElementById("globe-svg");
+    var tooltip=document.getElementById("map-tooltip");
+    var SIZE=wrap.clientWidth,R=SIZE/2-2;
+    var svg=d3.select(svgEl).attr("viewBox","0 0 "+SIZE+" "+SIZE);
+    var proj=d3.geoOrthographic().scale(R).translate([SIZE/2,SIZE/2]).clipAngle(90).rotate([20,-20]);
+    var path=d3.geoPath().projection(proj);
+    var defs=svg.append("defs");
+    defs.append("clipPath").attr("id","globe-clip").append("circle").attr("cx",SIZE/2).attr("cy",SIZE/2).attr("r",R);
+
+    var atmoBlur=defs.append("filter").attr("id","atmo-blur").attr("x","-50%").attr("y","-50%").attr("width","200%").attr("height","200%");
+    atmoBlur.append("feGaussianBlur").attr("stdDeviation",4);
+    svg.append("circle").attr("cx",SIZE/2).attr("cy",SIZE/2).attr("r",R+3).attr("fill","none")
+      .attr("stroke","#9fd4f0").attr("stroke-width",5).attr("opacity",.55)
+      .attr("filter","url(#atmo-blur)").style("pointer-events","none");
+
+    var oceanGrad=defs.append("radialGradient").attr("id","ocean-grad").attr("cx","38%").attr("cy","34%").attr("r","72%");
+    oceanGrad.append("stop").attr("offset","0%").attr("stop-color","#cdeefb");
+    oceanGrad.append("stop").attr("offset","50%").attr("stop-color","#4f9fca");
+    oceanGrad.append("stop").attr("offset","100%").attr("stop-color","#0a3a5c");
+    svg.append("circle").attr("cx",SIZE/2).attr("cy",SIZE/2).attr("r",R).attr("fill","url(#ocean-grad)");
+
+    var g=svg.append("g").attr("clip-path","url(#globe-clip)");
+    var grat=d3.geoGraticule();
+    var gratP=g.append("path").datum(grat()).attr("fill","none").attr("stroke","#a9d8ee").attr("stroke-width",.3).attr("opacity",.3);
+
+    var reliefFilter=defs.append("filter").attr("id","relief").attr("x","-15%").attr("y","-15%").attr("width","130%").attr("height","130%");
+    reliefFilter.append("feTurbulence").attr("type","fractalNoise").attr("baseFrequency","0.035 0.05").attr("numOctaves",5).attr("seed",7).attr("result","noise");
+    var diffLight=reliefFilter.append("feDiffuseLighting").attr("in","noise").attr("surface-scale",2.4).attr("diffuse-constant",1.15).attr("lighting-color","#ffffff").attr("result","light");
+    diffLight.append("feDistantLight").attr("azimuth",235).attr("elevation",55);
+    reliefFilter.append("feBlend").attr("in","SourceGraphic").attr("in2","light").attr("mode","multiply").attr("result","shaded");
+    reliefFilter.append("feComposite").attr("in","shaded").attr("in2","SourceGraphic").attr("operator","in");
+
+    var world=await d3.json("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json");
+    var countries=topojson.feature(world,world.objects.countries);
+
+    var LAND_COLORS=["#7c9c5e","#8fa863","#6f8f52","#9c9a5f","#87995a","#749167"];
+    function hashId(id){var n=Number(id)||0;n=(n<<13)^n;return Math.abs((n*(n*n*15731+789221)+1376312589));}
+    function landColor(d){
+      if(d.id===10)return "#eef3f6";
+      return LAND_COLORS[hashId(d.id)%LAND_COLORS.length];
+    }
+
+    var cPaths=g.selectAll(".country").data(countries.features).join("path").attr("class","country")
+      .attr("fill",landColor).attr("stroke","#4d6b45").attr("stroke-width",.25).attr("opacity",.93)
+      .style("filter","url(#relief)");
+
+    var cloudsG=g.append("g").attr("opacity",.5);
+    var clouds=d3.range(24).map(function(){return {lon:Math.random()*360-180,lat:Math.random()*150-75,rx:8+Math.random()*20,ry:4+Math.random()*8};});
+    function drawClouds(){
+      cloudsG.selectAll("ellipse").data(clouds).join("ellipse")
+        .attr("cx",function(d){var c=proj([d.lon,d.lat]);return c?c[0]:-9999;})
+        .attr("cy",function(d){var c=proj([d.lon,d.lat]);return c?c[1]:-9999;})
+        .attr("rx",function(d){return d.rx;}).attr("ry",function(d){return d.ry;})
+        .attr("fill","white").style("filter","blur(2.5px)");
+    }
+
+    var sg=defs.append("radialGradient").attr("id","shade-grad").attr("cx","66%").attr("cy","66%").attr("r","65%");
+    sg.append("stop").attr("offset","0%").attr("stop-color","rgba(0,0,40,0.3)");
+    sg.append("stop").attr("offset","100%").attr("stop-color","rgba(0,0,0,0)");
+    g.append("circle").attr("cx",SIZE/2).attr("cy",SIZE/2).attr("r",R).attr("fill","url(#shade-grad)").style("pointer-events","none");
+
+    var sh=defs.append("radialGradient").attr("id","sheen-grad").attr("cx","30%").attr("cy","26%").attr("r","40%");
+    sh.append("stop").attr("offset","0%").attr("stop-color","rgba(255,255,255,0.35)");
+    sh.append("stop").attr("offset","100%").attr("stop-color","rgba(255,255,255,0)");
+    svg.append("circle").attr("cx",SIZE/2).attr("cy",SIZE/2).attr("r",R).attr("fill","url(#sheen-grad)").style("pointer-events","none");
+    svg.append("circle").attr("cx",SIZE/2).attr("cy",SIZE/2).attr("r",R).attr("fill","none").attr("stroke","rgba(70,110,140,0.5)").attr("stroke-width",1).style("pointer-events","none");
+
+    var pins=[
+      {name:"San Francisco",lat:37.7749,lon:-122.4194,type:"home"},
+      {name:"New York City",lat:40.7128,lon:-74.0060,type:"spot"},
+      {name:"Boston",lat:42.3601,lon:-71.0589,type:"spot"},
+      {name:"Austin",lat:30.2672,lon:-97.7431,type:"spot"}
+    ];
+    var pulseL=g.append("g"),shadowL=g.append("g"),dotL=g.append("g"),labL=g.append("g"),isDrag=false;
+    function vis(lon,lat){var r=proj.rotate();return d3.geoDistance([lon,lat],[-r[0],-r[1]])<Math.PI/2;}
+    function pinPath(r){
+      var h=r*2.6,armY=-h*0.62;
+      return "M0,0 Q"+(-r*1.15)+","+(armY*0.68)+" "+(-r)+","+armY+" A"+r+","+r+" 0 1,1 "+r+","+armY+" Q"+(r*1.15)+","+(armY*0.68)+" 0,0 Z";
+    }
+    function drawPins(){
+      dotL.selectAll("*").remove();labL.selectAll("*").remove();shadowL.selectAll("*").remove();
+      pins.forEach(function(pin){
+        if(!vis(pin.lon,pin.lat))return;
+        var c=proj([pin.lon,pin.lat]),x=c[0],y=c[1],isH=pin.type==="home",r=isH?7:5.5;
+        shadowL.append("ellipse").attr("cx",x).attr("cy",y+1).attr("rx",r*0.75).attr("ry",r*0.3)
+          .attr("fill","rgba(0,0,0,0.28)").style("filter","blur(1px)");
+        var grp=dotL.append("g").attr("transform","translate("+x+","+y+")").style("cursor","pointer");
+        grp.append("path").attr("d",pinPath(r)).attr("fill","#1a1a12").attr("stroke","#fffafc").attr("stroke-width",1);
+        grp.append("circle").attr("cx",0).attr("cy",-r*2.6*0.62+0.5).attr("r",r*0.38).attr("fill","#fffafc");
+        (function(p,grp){
+          grp.on("mouseover",function(){if(isDrag)return;tooltip.style.display="block";tooltip.textContent=p.name;})
+             .on("mousemove",function(e){tooltip.style.left=(e.clientX+14)+"px";tooltip.style.top=(e.clientY-10)+"px";})
+             .on("mouseout",function(){tooltip.style.display="none";})
+             .on("click",function(){if(isDrag)return;tooltip.style.display="none";openCity(p.name);});
+        })(pin,grp);
+        labL.append("text").attr("x",x+r+6).attr("y",y+3).text(pin.name)
+          .attr("font-family","'Roboto Mono',monospace").attr("font-size",isH?"10px":"9px")
+          .attr("letter-spacing",".02em").attr("fill","#1a1a12")
+          .attr("paint-order","stroke").attr("stroke","#fffafc").attr("stroke-width",3)
+          .style("pointer-events","none");
+      });
+    }
+    setInterval(function(){
+      if(!vis(-122.4194,37.7749))return;
+      var c=proj([-122.4194,37.7749]);
+      pulseL.append("circle").attr("cx",c[0]).attr("cy",c[1]).attr("r",6)
+        .attr("fill","none").attr("stroke","#8e44ad").attr("stroke-width",1.5).attr("opacity",.8)
+        .transition().duration(1400).attr("r",22).attr("opacity",0).remove();
+    },1600);
+    function redraw(){cPaths.attr("d",path);gratP.attr("d",path(grat()));drawPins();drawClouds();}
+    redraw();
+    var lp=null,dd=0;
+    svg.call(d3.drag()
+      .on("start",function(e){lp=[e.x,e.y];dd=0;isDrag=false;})
+      .on("drag",function(e){
+        if(!lp)return;
+        var dx=e.x-lp[0],dy=e.y-lp[1];
+        dd+=Math.sqrt(dx*dx+dy*dy);if(dd>3)isDrag=true;
+        var r=proj.rotate();proj.rotate([r[0]+dx*.35,r[1]-dy*.35]);
+        lp=[e.x,e.y];redraw();
+      })
+      .on("end",function(){lp=null;setTimeout(function(){isDrag=false;},50);})
+    );
+    svg.on("wheel",function(e){
+      e.preventDefault();
+      proj.scale(Math.max(80,Math.min(proj.scale()-e.deltaY*.6,SIZE*3)));redraw();
+    });
+  })();
+  </script>
+</body>
+</html>
