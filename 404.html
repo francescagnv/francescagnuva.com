@@ -50,8 +50,8 @@
     .header-top{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:1rem;padding-bottom:1.2rem}
     .site-name{font-size:clamp(2rem,5vw,3.8rem);font-weight:600;letter-spacing:-.01em;line-height:1;cursor:pointer;color:inherit;background:none;border:none;font-family:"Cormorant Garamond",serif;text-transform:lowercase}
     nav{display:flex;gap:2rem;padding-top:.1rem;flex-wrap:wrap}
-    nav button{background:none;border:none;font-family:"Roboto Mono",monospace;font-size:.75rem;letter-spacing:.03em;text-transform:lowercase;color:#1a1a12;cursor:pointer;padding:.65rem 0;position:relative;opacity:.55;transition:opacity .2s}
-    nav button::after{content:"";position:absolute;bottom:0;left:0;right:0;height:2px;background:#1a1a12;transform:scaleX(0);transform-origin:left;transition:transform .22s ease}
+    nav button{background:none;border:none;font-family:"Roboto Mono",monospace;font-size:.75rem;letter-spacing:.03em;text-transform:lowercase;color:#1a1a12;cursor:pointer;padding:.65rem 0;position:relative;opacity:.85;transition:opacity .2s}
+    nav button::after{content:"";position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--nav-underline,#1a1a12);transform:scaleX(0);transform-origin:left;transition:transform .22s ease}
     nav button:hover,nav button.active{opacity:1}
     nav button:hover::after,nav button.active::after{transform:scaleX(1)}
     .page{display:none;flex:1;flex-direction:column;opacity:0;transition:opacity .35s ease}
@@ -66,17 +66,11 @@
     #globe-svg:active{cursor:grabbing}
     #map-tooltip{display:none;position:fixed;background:rgba(255,255,255,.93);border:1px solid #1a1a12;padding:6px 12px;font-family:"EB Garamond",serif;font-size:.95rem;pointer-events:none;z-index:500}
     .inner-page{padding:4rem 8vw 6rem;max-width:860px}
-    .art-item{display:flex;gap:3rem;align-items:flex-start;margin-bottom:4rem}
-    .art-item img{width:min(340px,55vw);flex-shrink:0;display:block}
-    .art-meta{padding-top:.4rem}
-    .art-title{font-size:1.15rem;font-style:italic;margin-bottom:.3rem}
-    .art-date{font-family:"Roboto Mono",monospace;font-size:.72rem;letter-spacing:.08em;opacity:.45}
-    @media(max-width:600px){.art-item{flex-direction:column;gap:1.2rem}.art-item img{width:100%}}
-    #page-film .inner-page{max-width:1100px}
-    .film-grid{column-count:3;column-gap:6px}
-    .film-grid img{width:100%;display:block;margin:0 0 6px;border:none;border-radius:0;box-shadow:none;outline:none}
-    @media(max-width:900px){.film-grid{column-count:2}}
-    @media(max-width:560px){.film-grid{column-count:1}}
+    #page-film .inner-page,#page-art .inner-page{max-width:1100px}
+    .film-grid,.art-grid{column-count:3;column-gap:6px}
+    .film-grid img,.art-grid img{width:100%;display:block;margin:0 0 6px;border:none;border-radius:0;box-shadow:none;outline:none}
+    @media(max-width:900px){.film-grid,.art-grid{column-count:2}}
+    @media(max-width:560px){.film-grid,.art-grid{column-count:1}}
     #page-city{flex-direction:column}
     .city-header{padding:2rem 6vw 1.5rem;border-bottom:1px solid rgba(26,26,18,.18);display:flex;align-items:center;gap:1.5rem}
     .city-back{background:none;border:none;cursor:pointer;font-family:"Roboto Mono",monospace;font-size:.75rem;color:#1a1a12;opacity:.5;transition:opacity .2s}
@@ -198,26 +192,13 @@
 
   <div id="page-art" class="page">
     <div class="inner-page">
-      <div class="art-item">
-        <img src="roger.jpeg" alt="Roger"/>
-        <div class="art-meta">
-          <div class="art-title"><em>Roger</em></div>
-          <div class="art-date">April 2022 &middot; NYC</div>
-        </div>
-      </div>
-      <div class="art-item">
-        <img src="kevin.jpeg" alt="Kevin"/>
-        <div class="art-meta">
-          <div class="art-title"><em>Kevin</em></div>
-          <div class="art-date">2022 &middot; Gospel, NYC</div>
-        </div>
-      </div>
-      <div class="art-item">
-        <img src="le-yaca.jpeg" alt="le Yaca"/>
-        <div class="art-meta">
-          <div class="art-title"><em>le Yaca</em></div>
-          <div class="art-date">2022 &middot; St Tropez</div>
-        </div>
+      <div class="art-grid">
+        <img src="roger.jpeg" alt="Painting" loading="lazy"/>
+        <img src="kevin.jpeg" alt="Painting" loading="lazy"/>
+        <img src="le-yaca.jpeg" alt="Painting" loading="lazy"/>
+        <img src="still-life-skull.jpeg" alt="Charcoal still life" loading="lazy"/>
+        <img src="skeleton.jpeg" alt="Charcoal study" loading="lazy"/>
+        <img src="still-life-ink.jpeg" alt="Ink still life" loading="lazy"/>
       </div>
     </div>
   </div>
@@ -1186,6 +1167,25 @@
     return out;
   }
 
+  // Run the same rainbow across the whole nav row, so the gradient reads
+  // continuously from the first letter of "experience" to the last of "projects".
+  function colorizeNav(){
+    var btns=Array.prototype.slice.call(document.querySelectorAll("nav button"));
+    if(!btns.length)return;
+    var total=btns.reduce(function(n,b){return n+b.textContent.trim().length;},0);
+    if(total<2)return;
+    var i=0;
+    btns.forEach(function(b){
+      var word=b.textContent.trim(),out="";
+      b.style.setProperty("--nav-underline",rainbowAt((i+word.length/2)/(total-1)));
+      for(var j=0;j<word.length;j++){
+        out+="<span style=\"color:"+rainbowAt(i/(total-1))+"\">"+word.charAt(j)+"</span>";
+        i++;
+      }
+      b.innerHTML=out;
+    });
+  }
+
   function renderProjectList(){
     var list=document.getElementById("project-list");
     if(!list)return;
@@ -1653,6 +1653,7 @@
   });
 
   (function(){
+    colorizeNav();
     var params=new URLSearchParams(window.location.search);
     var p=params.get("p");
     var path=p?decodeURIComponent(p).replace(/^\/|\/$/g,""):window.location.pathname.replace(/^\/|\/$/g,"")||"home";
@@ -1748,11 +1749,11 @@
     var proj=d3.geoOrthographic().scale(R).translate([SIZE/2,SIZE/2]).clipAngle(90).rotate([20,-20]);
     var path=d3.geoPath().projection(proj);
     var defs=svg.append("defs");
-    defs.append("clipPath").attr("id","globe-clip").append("circle").attr("cx",SIZE/2).attr("cy",SIZE/2).attr("r",R);
+    var clipCircle=defs.append("clipPath").attr("id","globe-clip").append("circle").attr("cx",SIZE/2).attr("cy",SIZE/2).attr("r",R);
 
     var atmoBlur=defs.append("filter").attr("id","atmo-blur").attr("x","-50%").attr("y","-50%").attr("width","200%").attr("height","200%");
     atmoBlur.append("feGaussianBlur").attr("stdDeviation",4);
-    svg.append("circle").attr("cx",SIZE/2).attr("cy",SIZE/2).attr("r",R+3).attr("fill","none")
+    var atmoCircle=svg.append("circle").attr("cx",SIZE/2).attr("cy",SIZE/2).attr("r",R+3).attr("fill","none")
       .attr("stroke","#9fd4f0").attr("stroke-width",5).attr("opacity",.55)
       .attr("filter","url(#atmo-blur)").style("pointer-events","none");
 
@@ -1760,7 +1761,7 @@
     oceanGrad.append("stop").attr("offset","0%").attr("stop-color","#cdeefb");
     oceanGrad.append("stop").attr("offset","50%").attr("stop-color","#4f9fca");
     oceanGrad.append("stop").attr("offset","100%").attr("stop-color","#0a3a5c");
-    svg.append("circle").attr("cx",SIZE/2).attr("cy",SIZE/2).attr("r",R).attr("fill","url(#ocean-grad)");
+    var oceanCircle=svg.append("circle").attr("cx",SIZE/2).attr("cy",SIZE/2).attr("r",R).attr("fill","url(#ocean-grad)");
 
     var g=svg.append("g").attr("clip-path","url(#globe-clip)");
     var grat=d3.geoGraticule();
@@ -1800,13 +1801,27 @@
     var sg=defs.append("radialGradient").attr("id","shade-grad").attr("cx","66%").attr("cy","66%").attr("r","65%");
     sg.append("stop").attr("offset","0%").attr("stop-color","rgba(0,0,40,0.3)");
     sg.append("stop").attr("offset","100%").attr("stop-color","rgba(0,0,0,0)");
-    g.append("circle").attr("cx",SIZE/2).attr("cy",SIZE/2).attr("r",R).attr("fill","url(#shade-grad)").style("pointer-events","none");
+    var shadeCircle=g.append("circle").attr("cx",SIZE/2).attr("cy",SIZE/2).attr("r",R).attr("fill","url(#shade-grad)").style("pointer-events","none");
 
     var sh=defs.append("radialGradient").attr("id","sheen-grad").attr("cx","30%").attr("cy","26%").attr("r","40%");
     sh.append("stop").attr("offset","0%").attr("stop-color","rgba(255,255,255,0.35)");
     sh.append("stop").attr("offset","100%").attr("stop-color","rgba(255,255,255,0)");
-    svg.append("circle").attr("cx",SIZE/2).attr("cy",SIZE/2).attr("r",R).attr("fill","url(#sheen-grad)").style("pointer-events","none");
-    svg.append("circle").attr("cx",SIZE/2).attr("cy",SIZE/2).attr("r",R).attr("fill","none").attr("stroke","rgba(70,110,140,0.5)").attr("stroke-width",1).style("pointer-events","none");
+    var sheenCircle=svg.append("circle").attr("cx",SIZE/2).attr("cy",SIZE/2).attr("r",R).attr("fill","url(#sheen-grad)").style("pointer-events","none");
+    var rimCircle=svg.append("circle").attr("cx",SIZE/2).attr("cy",SIZE/2).attr("r",R).attr("fill","none").attr("stroke","rgba(70,110,140,0.5)").attr("stroke-width",1).style("pointer-events","none");
+
+    // The ocean, atmosphere, shading and clip mask are plain circles, so they
+    // have to follow the projection's scale on zoom -- otherwise the land
+    // shrinks inside a fixed-size ball and the globe looks broken.
+    function globeK(){return proj.scale()/R;}
+    function syncGlobeShell(){
+      var s=proj.scale();
+      clipCircle.attr("r",s);
+      oceanCircle.attr("r",s);
+      shadeCircle.attr("r",s);
+      sheenCircle.attr("r",s);
+      rimCircle.attr("r",s);
+      atmoCircle.attr("r",s+3*globeK()).attr("stroke-width",5*globeK());
+    }
 
     var pins=[
       {name:"San Francisco",lat:37.7749,lon:-122.4194,type:"home"},
@@ -1824,7 +1839,8 @@
       dotL.selectAll("*").remove();labL.selectAll("*").remove();shadowL.selectAll("*").remove();
       pins.forEach(function(pin){
         if(!vis(pin.lon,pin.lat))return;
-        var c=proj([pin.lon,pin.lat]),x=c[0],y=c[1],isH=pin.type==="home",r=isH?7:5.5;
+        var k=Math.max(.5,Math.min(1.5,globeK()));
+        var c=proj([pin.lon,pin.lat]),x=c[0],y=c[1],isH=pin.type==="home",r=(isH?7:5.5)*k;
         shadowL.append("ellipse").attr("cx",x).attr("cy",y+1).attr("rx",r*0.75).attr("ry",r*0.3)
           .attr("fill","rgba(0,0,0,0.28)").style("filter","blur(1px)");
         var grp=dotL.append("g").attr("transform","translate("+x+","+y+")").style("cursor","pointer");
@@ -1837,7 +1853,7 @@
              .on("click",function(){if(isDrag)return;tooltip.style.display="none";openCity(p.name);});
         })(pin,grp);
         labL.append("text").attr("x",x+r+6).attr("y",y+3).text(pin.name)
-          .attr("font-family","'Roboto Mono',monospace").attr("font-size",isH?"10px":"9px")
+          .attr("font-family","'Roboto Mono',monospace").attr("font-size",Math.max(7,(isH?10:9)*k)+"px")
           .attr("letter-spacing",".02em").attr("fill","#1a1a12")
           .attr("paint-order","stroke").attr("stroke","#fffafc").attr("stroke-width",3)
           .style("pointer-events","none");
@@ -1846,11 +1862,12 @@
     setInterval(function(){
       if(!vis(-122.4194,37.7749))return;
       var c=proj([-122.4194,37.7749]);
-      pulseL.append("circle").attr("cx",c[0]).attr("cy",c[1]).attr("r",6)
-        .attr("fill","none").attr("stroke","#8e44ad").attr("stroke-width",1.5).attr("opacity",.8)
-        .transition().duration(1400).attr("r",22).attr("opacity",0).remove();
+      var pk=Math.max(.5,Math.min(1.5,globeK()));
+      pulseL.append("circle").attr("cx",c[0]).attr("cy",c[1]).attr("r",6*pk)
+        .attr("fill","none").attr("stroke","#8e44ad").attr("stroke-width",1.5*pk).attr("opacity",.8)
+        .transition().duration(1400).attr("r",22*pk).attr("opacity",0).remove();
     },1600);
-    function redraw(){cPaths.attr("d",path);gratP.attr("d",path(grat()));drawPins();drawClouds();}
+    function redraw(){syncGlobeShell();cPaths.attr("d",path);gratP.attr("d",path(grat()));drawPins();drawClouds();}
     redraw();
     var lp=null,dd=0;
     svg.call(d3.drag()
@@ -1866,8 +1883,12 @@
     );
     svg.on("wheel",function(e){
       e.preventDefault();
-      proj.scale(Math.max(80,Math.min(proj.scale()-e.deltaY*.6,SIZE*3)));redraw();
+      // Clamped so the planet can't shrink to a speck or swell past the frame.
+      proj.scale(Math.max(R*0.45,Math.min(proj.scale()-e.deltaY*.6,R*1.5)));
+      redraw();
     });
+    // Double-click snaps back to the default size if you've zoomed somewhere odd.
+    svg.on("dblclick",function(e){e.preventDefault();proj.scale(R);redraw();});
   })();
   </script>
 </body>
