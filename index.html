@@ -5,8 +5,42 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Francesca Gnuva</title>
   <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Roboto+Mono:wght@400;500&family=Cormorant+Garamond:wght@500;600&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script>
+  // Load the map library from several CDNs in order, falling back to the next
+  // one if a visitor's network/browser blocks or rejects the first (this is
+  // what was happening with unpkg.com for some visitors -- a single CDN is a
+  // single point of failure). Runs before the page body so it's well underway
+  // by the time anyone clicks a city.
+  (function(){
+    var JS=[
+      "https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js",
+      "https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js",
+      "https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.js"
+    ];
+    var CSS=[
+      "https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css",
+      "https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css",
+      "https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.css"
+    ];
+    function loadCss(i){
+      if(i>=CSS.length)return;
+      var link=document.createElement("link");
+      link.rel="stylesheet";
+      link.href=CSS[i];
+      link.onerror=function(){loadCss(i+1);};
+      document.head.appendChild(link);
+    }
+    function loadJs(i){
+      if(i>=JS.length){window.__maplibreLoadFailed=true;return;}
+      var s=document.createElement("script");
+      s.src=JS[i];
+      s.onerror=function(){loadJs(i+1);};
+      document.head.appendChild(s);
+    }
+    loadCss(0);
+    loadJs(0);
+  })();
+  </script>
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     html,body{height:100%}
@@ -49,27 +83,91 @@
     .city-back:hover{opacity:1}
     .city-title{font-size:clamp(1.6rem,3.5vw,2.6rem);font-weight:400;font-style:italic}
     .city-layout{display:flex;flex:1;min-height:0}
-    #city-map{flex:1;min-height:520px;z-index:1}
+    #city-map{flex:1;min-height:520px;z-index:1;position:relative;background:#dfe6e0}
     .city-sidebar{width:280px;flex-shrink:0;border-left:1.5px solid #1a1a12;display:flex;flex-direction:column;overflow:hidden;background:rgba(255,250,252,.8)}
     .sidebar-title{padding:1.4rem 1.5rem 1rem;font-size:.8rem;letter-spacing:.14em;text-transform:uppercase;opacity:.45;border-bottom:1px solid rgba(26,26,18,.12);font-family:"Roboto Mono",monospace}
     .spots-list{flex:1;overflow-y:auto;padding:.5rem 0}
     .spot-item{padding:.9rem 1.5rem;border-bottom:1px solid rgba(26,26,18,.08);cursor:pointer;transition:background .15s;display:flex;gap:.8rem;align-items:flex-start}
-    .spot-item:hover{background:rgba(255,255,255,.4)}
+    .spot-item:hover,.spot-item.active{background:rgba(255,255,255,.5)}
     .spot-emoji{font-size:1rem;margin-top:.1rem;flex-shrink:0}
     .spot-name{font-size:1rem;font-weight:500;line-height:1.2}
     .spot-cat{font-size:.78rem;font-style:italic;opacity:.5;margin-top:.1rem}
-    .leaflet-popup-content-wrapper{font-family:"EB Garamond",serif!important;border-radius:0!important;border:1px solid #1a1a12!important;box-shadow:4px 4px 0 rgba(26,26,18,.08)!important;background:rgba(255,250,252,.97)!important}
-    .leaflet-popup-tip{background:rgba(255,250,252,.97)!important}
-    .leaflet-popup-content{font-size:1rem;line-height:1.5;margin:10px 14px!important}
+    .maplibregl-popup-content{font-family:"EB Garamond",serif!important;border-radius:0!important;border:1px solid #1a1a12!important;box-shadow:4px 4px 0 rgba(26,26,18,.08)!important;background:rgba(255,250,252,.97)!important;padding:10px 14px!important}
+    .maplibregl-popup-anchor-bottom .maplibregl-popup-tip{border-top-color:rgba(255,250,252,.97)!important}
+    .maplibregl-popup-anchor-top .maplibregl-popup-tip{border-bottom-color:rgba(255,250,252,.97)!important}
+    .maplibregl-popup-anchor-left .maplibregl-popup-tip{border-right-color:rgba(255,250,252,.97)!important}
+    .maplibregl-popup-anchor-right .maplibregl-popup-tip{border-left-color:rgba(255,250,252,.97)!important}
+    .maplibregl-popup-close-button{font-family:"Roboto Mono",monospace;font-size:1rem;color:#1a1a12;opacity:.5}
+    .maplibregl-popup-close-button:hover{opacity:1;background:none}
+    .maplibregl-ctrl-attrib{font-family:"Roboto Mono",monospace;font-size:.68rem}
     .popup-name{font-weight:500;font-size:1.05rem}
     .popup-cat{font-style:italic;opacity:.6;font-size:.88rem}
     .popup-note{margin-top:.3rem;font-size:.92rem;opacity:.8}
     .popup-link{margin-top:.4rem}
     .popup-link a{font-family:"Roboto Mono",monospace;font-size:.72rem;letter-spacing:.03em;color:#1a1a12;text-decoration:none;border-bottom:1px solid currentColor}
-    .spot-dot{width:14px;height:14px;border-radius:50%;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,.25)}
+    .spot-dot{width:14px;height:14px;border-radius:50%;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,.35);cursor:pointer}
+    #city-map-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#dfe6e0;font-family:"Roboto Mono",monospace;font-size:.75rem;letter-spacing:.05em;opacity:.5;z-index:2;pointer-events:none;transition:opacity .3s ease}
+    #city-map-loading.hidden{opacity:0}
     @media(max-width:700px){.city-layout{flex-direction:column}.city-sidebar{width:100%;border-left:none;border-top:1.5px solid #1a1a12;max-height:240px}}
     footer{border-top:1.5px solid #1a1a12;padding:1.8rem 6vw;display:flex;justify-content:space-between;font-size:.85rem;font-style:italic;opacity:.5;flex-wrap:wrap;gap:.5rem;flex-shrink:0}
     footer a{color:#1a1a12;text-decoration:none;border-bottom:1px solid currentColor}
+    .projects-intro{max-width:600px;line-height:1.85;font-size:1.05rem;margin-bottom:2.2rem}
+    .project-list{display:flex;flex-direction:column;gap:1rem;max-width:680px}
+    .project-item{display:flex;gap:1.4rem;align-items:center;text-align:left;width:100%;padding:1.2rem 1.4rem;
+      background:none;border:1px solid #1a1a12;box-shadow:4px 4px 0 rgba(26,26,18,.08);cursor:pointer;
+      color:#1a1a12;font-family:inherit;transition:background .18s,box-shadow .18s,transform .18s}
+    .project-item:hover{background:rgba(255,255,255,.55);box-shadow:6px 6px 0 rgba(26,26,18,.12);transform:translate(-1px,-1px)}
+    .project-thumb{width:56px;height:56px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+      border:1px solid rgba(26,26,18,.25)}
+    .project-thumb svg{width:74%;height:74%}
+    .project-title{font-size:1.3rem;font-style:italic;line-height:1.2}
+    .project-sub{font-size:.95rem;opacity:.7;margin-top:.25rem;line-height:1.45}
+    .project-tag{font-family:"Roboto Mono",monospace;font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;opacity:.45;margin-top:.5rem}
+    @media(max-width:520px){.project-item{flex-direction:column;align-items:flex-start;gap:.9rem}}
+    .memory-intro{max-width:600px;line-height:1.85;font-size:1.05rem;margin-bottom:1.8rem}
+    .memory-stats{display:flex;align-items:center;gap:1.6rem;margin-bottom:1.5rem;font-family:"Roboto Mono",monospace;font-size:.78rem;letter-spacing:.04em;opacity:.7;flex-wrap:wrap}
+    .memory-stats strong{opacity:1;font-weight:500}
+    .memory-restart{background:none;border:1px solid #1a1a12;padding:.5rem 1rem;font-family:"Roboto Mono",monospace;font-size:.72rem;letter-spacing:.04em;text-transform:lowercase;cursor:pointer;color:#1a1a12;transition:background .15s,color .15s}
+    .memory-restart:hover{background:#1a1a12;color:#fffafc}
+    .memory-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;max-width:720px}
+    @media(max-width:680px){.memory-grid{grid-template-columns:repeat(4,1fr)}}
+    @media(max-width:420px){.memory-grid{grid-template-columns:repeat(3,1fr)}}
+    .mem-card{aspect-ratio:1;perspective:800px;cursor:pointer}
+    .mem-card-inner{position:relative;width:100%;height:100%;transition:transform .5s cubic-bezier(.4,.1,.2,1);transform-style:preserve-3d}
+    .mem-card.flipped .mem-card-inner,.mem-card.matched .mem-card-inner{transform:rotateY(180deg)}
+    .mem-card.matched{cursor:default}
+    .mem-face{position:absolute;inset:0;backface-visibility:hidden;border:1px solid #1a1a12;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:3px 3px 0 rgba(26,26,18,.08)}
+    .mem-back{background:#1a1a12}
+    .mem-back::after{content:"";width:34%;height:34%;border:1px solid rgba(255,250,252,.5);transform:rotate(45deg)}
+    .mem-front{background:#fffafc;transform:rotateY(180deg);padding:8% 8% 6%}
+    .mem-front svg{width:60%;height:60%;flex-shrink:0}
+    .mem-front-label{font-family:"Roboto Mono",monospace;font-size:.6rem;letter-spacing:.01em;text-align:center;opacity:.65;margin-top:.3rem;line-height:1.2}
+    .mem-card.matched .mem-face{opacity:.5}
+    .memory-win{margin-top:1.8rem;font-family:"Roboto Mono",monospace;font-size:.82rem;letter-spacing:.03em;
+      opacity:0;max-height:0;overflow:hidden;transition:opacity .4s ease,max-height .4s ease}
+    .memory-win.show{opacity:1;max-height:180px}
+    .win-line{margin-bottom:.9rem}
+    .win-form{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center}
+    .win-form input{font-family:"Roboto Mono",monospace;font-size:.75rem;letter-spacing:.03em;color:#1a1a12;
+      background:none;border:1px solid #1a1a12;padding:.5rem .7rem;width:11rem;outline:none}
+    .win-form input:focus{box-shadow:2px 2px 0 rgba(26,26,18,.12)}
+    .win-note{margin-top:.7rem;font-size:.72rem;opacity:.6;min-height:1rem}
+    .leaderboard{margin-top:2.6rem;max-width:460px}
+    .lb-head{display:flex;align-items:baseline;justify-content:space-between;
+      border-bottom:1px solid rgba(26,26,18,.25);padding-bottom:.5rem;margin-bottom:.2rem}
+    .lb-title{font-family:"Roboto Mono",monospace;font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;opacity:.5}
+    .lb-refresh{background:none;border:none;cursor:pointer;color:#1a1a12;opacity:.45;
+      font-family:"Roboto Mono",monospace;font-size:.68rem;letter-spacing:.04em;padding:0;transition:opacity .2s}
+    .lb-refresh:hover{opacity:1}
+    .lb-table{width:100%;border-collapse:collapse;font-family:"Roboto Mono",monospace;font-size:.76rem}
+    .lb-table td{padding:.55rem .2rem;border-bottom:1px solid rgba(26,26,18,.1)}
+    .lb-rank{width:2rem;opacity:.4}
+    .lb-name{font-family:"EB Garamond",Georgia,serif;font-size:1rem}
+    .lb-moves{text-align:right;width:5rem}
+    .lb-time{text-align:right;width:4rem;opacity:.55}
+    .lb-row-you .lb-name{font-weight:600}
+    .lb-row-you td{background:rgba(255,255,255,.55)}
+    .lb-note{margin-top:.7rem;font-size:.7rem;font-family:"Roboto Mono",monospace;opacity:.5;line-height:1.5}
   </style>
 </head>
 <body>
@@ -167,7 +265,43 @@
   </div>
 
   <div id="page-projects" class="page">
-    <div class="inner-page"></div>
+    <div class="inner-page">
+      <p class="projects-intro">small things I build for fun. more coming.</p>
+      <div class="project-list" id="project-list"></div>
+    </div>
+  </div>
+
+  <div id="page-game" class="page">
+    <div class="city-header">
+      <button class="city-back" onclick="showPage('projects')">back to projects</button>
+      <h2 class="city-title" id="game-page-title"></h2>
+    </div>
+    <div class="inner-page memory-game">
+      <p class="memory-intro">eighteen landmarks, two cards each. flip two at a time and find every pair &mdash; then put your name on the board.</p>
+      <div class="memory-stats">
+        <span>moves: <strong id="memory-moves">0</strong></span>
+        <span>time: <strong id="memory-time">0:00</strong></span>
+        <span>matched: <strong id="memory-matches">0 / 18</strong></span>
+        <button class="memory-restart" onclick="renderMemoryGame()">new game</button>
+      </div>
+      <div class="memory-grid" id="memory-grid"></div>
+      <div class="memory-win" id="memory-win">
+        <div class="win-line">solved in <strong id="memory-win-moves">0</strong> moves &middot; <strong id="memory-win-time">0:00</strong></div>
+        <form class="win-form" id="memory-win-form" onsubmit="return submitMemoryScore(event)">
+          <input id="memory-name" maxlength="24" placeholder="your name" autocomplete="off" aria-label="your name"/>
+          <button type="submit" class="memory-restart">add to leaderboard</button>
+        </form>
+        <div class="win-note" id="memory-win-note"></div>
+      </div>
+      <div class="leaderboard">
+        <div class="lb-head">
+          <span class="lb-title">leaderboard</span>
+          <button class="lb-refresh" onclick="loadLeaderboard()">refresh</button>
+        </div>
+        <table class="lb-table"><tbody id="lb-body"></tbody></table>
+        <div class="lb-note" id="lb-note"></div>
+      </div>
+    </div>
   </div>
 
   <div id="page-city" class="page">
@@ -176,7 +310,9 @@
       <h2 class="city-title" id="city-page-title"></h2>
     </div>
     <div class="city-layout">
-      <div id="city-map"></div>
+      <div id="city-map">
+        <div id="city-map-loading">loading map&hellip;</div>
+      </div>
       <div class="city-sidebar">
         <div class="sidebar-title">favourite spots</div>
         <div class="spots-list" id="spots-list"></div>
@@ -187,100 +323,1266 @@
   <div id="page-veil"></div>
   <div id="map-tooltip"></div>
 
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none"><defs>
+
+
+<symbol id="lm-esb" viewBox="0 0 100 100">
+  <g fill="none" stroke="#1a1a12" stroke-width="1.3">
+    <rect x="22" y="70" width="56" height="20"/>
+    <rect x="30" y="56" width="40" height="14"/>
+    <rect x="36" y="44" width="28" height="12"/>
+    <rect x="41" y="20" width="18" height="24"/>
+  </g>
+  <g stroke="#1a1a12" stroke-width="0.75" opacity=".75">
+    <line x1="26" y1="74" x2="26" y2="90"/><line x1="30" y1="74" x2="30" y2="90"/>
+    <line x1="34" y1="74" x2="34" y2="90"/><line x1="38" y1="74" x2="38" y2="90"/>
+    <line x1="42" y1="74" x2="42" y2="90"/><line x1="46" y1="74" x2="46" y2="90"/>
+    <line x1="50" y1="74" x2="50" y2="90"/><line x1="54" y1="74" x2="54" y2="90"/>
+    <line x1="58" y1="74" x2="58" y2="90"/><line x1="62" y1="74" x2="62" y2="90"/>
+    <line x1="66" y1="74" x2="66" y2="90"/><line x1="70" y1="74" x2="70" y2="90"/>
+    <line x1="74" y1="74" x2="74" y2="90"/>
+    <line x1="22" y1="74" x2="78" y2="74"/><line x1="22" y1="82" x2="78" y2="82"/>
+    <line x1="34" y1="60" x2="34" y2="70"/><line x1="38" y1="60" x2="38" y2="70"/>
+    <line x1="42" y1="60" x2="42" y2="70"/><line x1="46" y1="60" x2="46" y2="70"/>
+    <line x1="50" y1="60" x2="50" y2="70"/><line x1="54" y1="60" x2="54" y2="70"/>
+    <line x1="58" y1="60" x2="58" y2="70"/><line x1="62" y1="60" x2="62" y2="70"/>
+    <line x1="66" y1="60" x2="66" y2="70"/>
+    <line x1="30" y1="60" x2="70" y2="60"/>
+    <line x1="40" y1="48" x2="40" y2="56"/><line x1="44" y1="48" x2="44" y2="56"/>
+    <line x1="48" y1="48" x2="48" y2="56"/><line x1="52" y1="48" x2="52" y2="56"/>
+    <line x1="56" y1="48" x2="56" y2="56"/><line x1="60" y1="48" x2="60" y2="56"/>
+    <line x1="36" y1="48" x2="64" y2="48"/>
+    <line x1="44" y1="22" x2="44" y2="44"/><line x1="47" y1="22" x2="47" y2="44"/>
+    <line x1="50" y1="22" x2="50" y2="44"/><line x1="53" y1="22" x2="53" y2="44"/>
+    <line x1="56" y1="22" x2="56" y2="44"/>
+    <line x1="41" y1="32" x2="59" y2="32"/>
+  </g>
+  <g fill="none" stroke="#c0835a" stroke-width="1.2">
+    <rect x="43" y="14" width="14" height="6"/>
+    <rect x="45.5" y="9" width="9" height="5"/>
+    <line x1="50" y1="9" x2="50" y2="2"/>
+    <line x1="47.5" y1="5" x2="52.5" y2="5"/>
+    <line x1="48.5" y1="7" x2="51.5" y2="7"/>
+  </g>
+  <circle cx="50" cy="1.5" r="1.1" fill="#c0835a"/>
+  <line x1="8" y1="90" x2="92" y2="90" stroke="#1a1a12" stroke-width="1.6"/>
+</symbol>
+
+<symbol id="lm-ggb" viewBox="0 0 100 100">
+  <g stroke="#2980b9" stroke-width="0.8" opacity=".55" fill="none">
+    <path d="M2,80 Q12,77 22,80 T42,80 T62,80 T82,80 T98,80"/>
+    <path d="M2,86 Q12,83 22,86 T42,86 T62,86 T82,86 T98,86"/>
+    <path d="M2,92 Q12,89 22,92 T42,92 T62,92 T82,92 T98,92"/>
+  </g>
+  <path d="M0,72 L10,60 L18,66 L24,62 L24,74 L0,74 Z" fill="#1a1a12" opacity=".18"/>
+  <path d="M100,72 L90,58 L82,64 L76,60 L76,74 L100,74 Z" fill="#1a1a12" opacity=".18"/>
+  <g stroke="#c0835a" stroke-width="1.5" fill="none">
+    <line x1="25" y1="16" x2="23" y2="70"/><line x1="33" y1="16" x2="35" y2="70"/>
+    <line x1="23.4" y1="26" x2="34.6" y2="26"/><line x1="23.1" y1="34" x2="34.9" y2="34"/>
+    <line x1="22.8" y1="43" x2="35.2" y2="43"/><line x1="22.5" y1="52" x2="35.5" y2="52"/>
+    <line x1="22.2" y1="61" x2="35.8" y2="61"/>
+    <rect x="24" y="12" width="10" height="4"/>
+    <line x1="65" y1="16" x2="63" y2="70"/><line x1="73" y1="16" x2="75" y2="70"/>
+    <line x1="63.4" y1="26" x2="74.6" y2="26"/><line x1="63.1" y1="34" x2="74.9" y2="34"/>
+    <line x1="62.8" y1="43" x2="75.2" y2="43"/><line x1="62.5" y1="52" x2="75.5" y2="52"/>
+    <line x1="62.2" y1="61" x2="75.8" y2="61"/>
+    <rect x="64" y="12" width="10" height="4"/>
+  </g>
+  <path d="M0,60 Q14,58 29,14 Q44,54 50,56 Q56,54 69,14 Q84,58 100,60" fill="none" stroke="#c0835a" stroke-width="1.4"/>
+  <g stroke="#1a1a12" stroke-width="0.7" opacity=".8">
+    <line x1="6" y1="59" x2="6" y2="66"/><line x1="12" y1="56" x2="12" y2="66"/>
+    <line x1="18" y1="47" x2="18" y2="66"/>
+    <line x1="37" y1="34" x2="37" y2="66"/><line x1="41" y1="45" x2="41" y2="66"/>
+    <line x1="45" y1="52" x2="45" y2="66"/><line x1="50" y1="56" x2="50" y2="66"/>
+    <line x1="55" y1="52" x2="55" y2="66"/><line x1="59" y1="45" x2="59" y2="66"/>
+    <line x1="63" y1="34" x2="63" y2="66"/>
+    <line x1="82" y1="47" x2="82" y2="66"/><line x1="88" y1="56" x2="88" y2="66"/>
+    <line x1="94" y1="59" x2="94" y2="66"/>
+  </g>
+  <line x1="0" y1="66" x2="100" y2="66" stroke="#1a1a12" stroke-width="1.7"/>
+  <line x1="0" y1="69" x2="100" y2="69" stroke="#1a1a12" stroke-width="0.9" opacity=".7"/>
+</symbol>
+
+<symbol id="lm-arch" viewBox="0 0 100 100">
+  <path d="M14,88 C14,40 30,10 50,10 C70,10 86,40 86,88 L78,88 C78,44 66,18 50,18 C34,18 22,44 22,88 Z" fill="#1a1a12" opacity=".92"/>
+  <path d="M50,10 C70,10 86,40 86,88 L82,88 C82,42 68,14 50,14 Z" fill="#1a1a12" opacity=".45"/>
+  <g stroke="#fffafc" stroke-width="0.7" opacity=".55">
+    <line x1="16" y1="80" x2="22" y2="80"/><line x1="17" y1="70" x2="23" y2="70"/>
+    <line x1="18.5" y1="60" x2="24.5" y2="60"/><line x1="21" y1="50" x2="27" y2="50"/>
+    <line x1="25" y1="40" x2="31" y2="40"/><line x1="31" y1="30" x2="36" y2="31"/>
+    <line x1="39" y1="22" x2="43" y2="24"/>
+    <line x1="84" y1="80" x2="78" y2="80"/><line x1="83" y1="70" x2="77" y2="70"/>
+    <line x1="81.5" y1="60" x2="75.5" y2="60"/><line x1="79" y1="50" x2="73" y2="50"/>
+    <line x1="75" y1="40" x2="69" y2="40"/><line x1="69" y1="30" x2="64" y2="31"/>
+    <line x1="61" y1="22" x2="57" y2="24"/>
+  </g>
+  <g fill="#fffafc" opacity=".8">
+    <rect x="44" y="13" width="2" height="1.6"/><rect x="54" y="13" width="2" height="1.6"/>
+  </g>
+  <line x1="6" y1="88" x2="94" y2="88" stroke="#1a1a12" stroke-width="1.6"/>
+  <g stroke="#1a1a12" stroke-width="0.7" opacity=".5">
+    <line x1="10" y1="92" x2="90" y2="92"/><line x1="14" y1="96" x2="86" y2="96"/>
+  </g>
+</symbol>
+
+<symbol id="lm-liberty" viewBox="0 0 100 100">
+  <g fill="none" stroke="#1a1a12" stroke-width="1.15">
+    <path d="M28,96 L33,86 L67,86 L72,96 Z"/>
+    <rect x="35" y="74" width="30" height="12"/>
+    <line x1="35" y1="78" x2="65" y2="78"/>
+    <line x1="43" y1="78" x2="43" y2="86"/><line x1="50" y1="78" x2="50" y2="86"/>
+    <line x1="57" y1="78" x2="57" y2="86"/>
+  </g>
+  <path d="M43,74 C42,64 43,54 46.5,47 L46.5,38 L53.5,38 L53.5,46 C57,52 59,62 58,74 Z" fill="#27ae60" opacity=".2"/>
+  <path d="M43,74 C42,64 43,54 46.5,47 L46.5,38 L53.5,38 L53.5,46 C57,52 59,62 58,74 Z" fill="none" stroke="#1a1a12" stroke-width="1.15"/>
+  <g stroke="#1a1a12" stroke-width="0.6" opacity=".65" fill="none">
+    <path d="M47,50 C46,58 45.4,66 45.4,73"/>
+    <path d="M50.4,49 C50.4,58 50.4,66 50.4,73"/>
+    <path d="M53.6,50.5 C54.6,58 55.2,66 55.2,73"/>
+    <path d="M44,62 Q50,59.5 57,62"/>
+    <path d="M44.6,68 Q50,66 56.6,68"/>
+  </g>
+  <path d="M46.5,38 C46.5,35.6 45.4,33.6 44.2,32.6 C45.6,31.8 46.5,30.4 46.5,28.4" fill="none" stroke="#1a1a12" stroke-width="1.05"/>
+  <path d="M53.5,38 C53.5,35.6 54.6,33.6 55.8,32.6 C54.4,31.8 53.5,30.4 53.5,28.4" fill="none" stroke="#1a1a12" stroke-width="1.05"/>
+  <circle cx="50" cy="25" r="5.2" fill="#fffafc" stroke="#1a1a12" stroke-width="1.1"/>
+  <g stroke="#1a1a12" stroke-width="0.6" fill="none">
+    <path d="M48.2,24.4 L49,24.4"/><path d="M51,24.4 L51.8,24.4"/>
+    <path d="M50,25.4 L49.4,27"/>
+    <path d="M48.7,28.4 Q50,29.3 51.4,28.4"/>
+  </g>
+  <g fill="#1a1a12">
+    <polygon points="50,12.5 51.2,19 48.8,19"/>
+    <polygon points="43.6,14.2 47.2,19.6 45,20.8"/>
+    <polygon points="56.4,14.2 52.8,19.6 55,20.8"/>
+    <polygon points="38.6,18.6 44.4,21.4 43,23.4"/>
+    <polygon points="61.4,18.6 55.6,21.4 57,23.4"/>
+    <polygon points="36.4,25.4 43.2,25.6 42.6,27.8"/>
+    <polygon points="63.6,25.4 56.8,25.6 57.4,27.8"/>
+  </g>
+  <path d="M58,58 C65,53 69,42 68.5,32" fill="none" stroke="#1a1a12" stroke-width="1.3"/>
+  <path d="M46.5,44 L38,38.5 L33.5,45" fill="none" stroke="#1a1a12" stroke-width="1.2"/>
+  <g transform="rotate(-20 34 50)">
+    <rect x="29" y="43" width="10" height="13" fill="#fffafc" stroke="#1a1a12" stroke-width="1.05"/>
+    <g stroke="#1a1a12" stroke-width="0.55" opacity=".7">
+      <line x1="30.6" y1="46.4" x2="37.4" y2="46.4"/><line x1="30.6" y1="49.4" x2="37.4" y2="49.4"/>
+      <line x1="30.6" y1="52.4" x2="37.4" y2="52.4"/>
+    </g>
+  </g>
+  <rect x="64.6" y="26" width="8" height="4" fill="#fffafc" stroke="#1a1a12" stroke-width="1"/>
+  <line x1="64.6" y1="28" x2="72.6" y2="28" stroke="#1a1a12" stroke-width="0.5" opacity=".6"/>
+  <path d="M65.8,26 C65.8,19.6 67.6,16.4 68.6,12 C69.8,16.4 71.4,19.6 71.4,26 Z" fill="#c0835a"/>
+  <path d="M67.6,24 C67.6,20.6 68.4,18.6 68.6,16.4 C69.2,18.6 70,20.6 70,24 Z" fill="#fffafc" opacity=".6"/>
+</symbol>
+
+<symbol id="lm-rushmore" viewBox="0 0 100 100">
+  <path d="M1,84 L4,52 L11,38 L22,30 L34,33 L44,28 L56,32 L68,29 L80,36 L90,46 L97,62 L99,84 Z" fill="#1a1a12" opacity=".07"/>
+  <path d="M1,84 L4,52 L11,38 L22,30 L34,33 L44,28 L56,32 L68,29 L80,36 L90,46 L97,62 L99,84" fill="none" stroke="#1a1a12" stroke-width="1.25"/>
+  <g stroke="#1a1a12" stroke-width="0.5" opacity=".4">
+    <path d="M4,58 L10,56 L9,46"/><path d="M14,40 L18,44 L16,52"/>
+    <path d="M32,34 L30,40"/><path d="M48,31 L50,38"/><path d="M66,31 L64,38"/>
+    <path d="M84,40 L88,48 L86,56"/><path d="M92,52 L96,64"/>
+    <path d="M1,72 L12,70"/><path d="M88,66 L98,70"/>
+  </g>
+  <g fill="#fffafc" stroke="#1a1a12" stroke-width="1.1">
+    <path d="M12,52 C12,45 15,40 20,40 C25,40 28,45 28,52 C28,59 25,64 20,64 C15,64 12,59 12,52 Z"/>
+    <path d="M32.5,55 C32.5,48 35.5,44 40,44 C44.5,44 47.5,48 47.5,55 C47.5,62 44.5,66 40,66 C35.5,66 32.5,62 32.5,55 Z"/>
+    <path d="M51.5,59 C51.5,53 54,49.5 58,49.5 C62,49.5 64.5,53 64.5,59 C64.5,65 62,68.5 58,68.5 C54,68.5 51.5,65 51.5,59 Z"/>
+    <path d="M70.5,57 C70.5,50 73.5,46 78,46 C82.5,46 85.5,50 85.5,57 C85.5,64 82.5,68 78,68 C73.5,68 70.5,64 70.5,57 Z"/>
+  </g>
+  <g fill="none" stroke="#1a1a12" stroke-width="0.7" opacity=".9">
+    <path d="M13,48 C15,43.6 25,43.6 27,48"/>
+    <path d="M15,51.4 L18,51.4 M22,51.4 L25,51.4"/>
+    <path d="M20,52.6 L18.6,57.6 L21.4,58.2"/>
+    <path d="M17.6,61 Q20,62.4 22.6,61"/>
+    <path d="M12.6,47 C11.6,44 13,41.4 15,40.6"/>
+    <path d="M33.6,51.4 C35.4,47.4 44.6,47.4 46.4,51.4"/>
+    <path d="M35.4,54.4 L38.2,54.4 M41.8,54.4 L44.6,54.4"/>
+    <path d="M40,55.6 L38.7,60.2 L41.3,60.8"/>
+    <path d="M37.8,63.4 Q40,64.7 42.4,63.4"/>
+    <path d="M52.6,55.6 C54.2,52.2 61.8,52.2 63.4,55.6"/>
+    <path d="M56,62 L54.8,64.4 M60,62 L61.2,64.4"/>
+    <path d="M58,59 L57,62.8 L59.2,63.3"/>
+    <path d="M56.2,66.2 Q58,67.3 60,66.2"/>
+    <circle cx="55.6" cy="58.6" r="2.1"/><circle cx="60.4" cy="58.6" r="2.1"/>
+    <path d="M57.7,58.6 L58.3,58.6"/>
+    <path d="M71.6,53.4 C73.4,49.4 82.6,49.4 84.4,53.4"/>
+    <path d="M73.4,56.4 L76.2,56.4 M79.8,56.4 L82.6,56.4"/>
+    <path d="M78,57.6 L76.7,62 L79.3,62.6"/>
+    <path d="M73.6,64.4 C74.6,68.8 81.4,68.8 82.4,64.4"/>
+    <path d="M75.8,64.6 Q78,65.6 80.2,64.6"/>
+  </g>
+  <g stroke="#1a1a12" stroke-width="0.6" opacity=".45">
+    <path d="M30,44 L30,62"/><path d="M49.5,50 L49.5,66"/><path d="M67.5,50 L67.5,66"/>
+  </g>
+  <path d="M0,84 Q14,78 26,83 Q40,88 54,82 Q70,77 84,83 Q94,87 100,84 L100,100 L0,100 Z" fill="#1a1a12" opacity=".12"/>
+  <path d="M0,84 Q14,78 26,83 Q40,88 54,82 Q70,77 84,83 Q94,87 100,84" fill="none" stroke="#1a1a12" stroke-width="0.9"/>
+  <g fill="none" stroke="#1a1a12" stroke-width="0.8" opacity=".8">
+    <path d="M12,98 L12,90 M8.6,90 L12,84 L15.4,90 Z M9.4,94 L12,89.4 L14.6,94 Z"/>
+    <path d="M28,99 L28,91 M24.6,91 L28,85 L31.4,91 Z M25.4,95 L28,90.4 L30.6,95 Z"/>
+    <path d="M46,98 L46,90 M42.6,90 L46,84 L49.4,90 Z M43.4,94 L46,89.4 L48.6,94 Z"/>
+    <path d="M64,99 L64,91 M60.6,91 L64,85 L67.4,91 Z M61.4,95 L64,90.4 L66.6,95 Z"/>
+    <path d="M82,98 L82,90 M78.6,90 L82,84 L85.4,90 Z M79.4,94 L82,89.4 L84.6,94 Z"/>
+    <path d="M94,99 L94,92 M91.2,92 L94,87 L96.8,92 Z"/>
+  </g>
+</symbol>
+
+<symbol id="lm-hollywood" viewBox="0 0 100 100">
+  <path d="M0,96 L18,74 L34,80 L52,62 L72,72 L88,64 L100,76 L100,100 L0,100 Z" fill="#c0835a" opacity=".16"/>
+  <path d="M0,96 L18,74 L34,80 L52,62 L72,72 L88,64 L100,76" fill="none" stroke="#c0835a" stroke-width="1.3"/>
+  <g stroke="#c0835a" stroke-width="0.6" opacity=".6">
+    <path d="M10,88 L12,84"/><path d="M22,80 L24,76"/><path d="M40,76 L42,72"/>
+    <path d="M58,70 L60,66"/><path d="M78,70 L80,66"/><path d="M92,74 L94,70"/>
+    <path d="M6,92 L8,88"/><path d="M30,80 L32,76"/><path d="M66,70 L68,66"/>
+  </g>
+  <g stroke="#1a1a12" stroke-width="0.8" opacity=".8">
+    <line x1="15" y1="54" x2="15" y2="70"/><line x1="23" y1="54" x2="23" y2="70"/>
+    <line x1="31" y1="54" x2="31" y2="72"/><line x1="39" y1="54" x2="39" y2="72"/>
+    <line x1="47" y1="54" x2="47" y2="68"/><line x1="55" y1="54" x2="55" y2="66"/>
+    <line x1="63" y1="54" x2="63" y2="66"/><line x1="71" y1="54" x2="71" y2="68"/>
+    <line x1="79" y1="54" x2="79" y2="66"/>
+    <line x1="13" y1="62" x2="85" y2="58"/>
+  </g>
+  <g fill="none" stroke="#1a1a12" stroke-width="1.5" stroke-linecap="square">
+    <path d="M12,42 L12,54 M18,42 L18,54 M12,48 L18,48"/>
+    <rect x="20" y="42" width="6" height="12"/>
+    <path d="M28,42 L28,54 L34,54"/>
+    <path d="M36,42 L36,54 L42,54"/>
+    <path d="M44,42 L47,48 M50,42 L47,48 M47,48 L47,54"/>
+    <path d="M52,42 L53.5,54 L55,46 L56.5,54 L58,42"/>
+    <rect x="60" y="42" width="6" height="12"/>
+    <rect x="68" y="42" width="6" height="12"/>
+    <path d="M76,42 L79,42 Q82,42 82,48 Q82,54 79,54 L76,54 Z"/>
+  </g>
+</symbol>
+
+<symbol id="lm-needle" viewBox="0 0 100 100">
+  <line x1="8" y1="94" x2="92" y2="94" stroke="#1a1a12" stroke-width="1.6"/>
+  <g fill="none" stroke="#1a1a12" stroke-width="1.25">
+    <path d="M38,44 C34,62 26,82 22,94"/>
+    <path d="M62,44 C66,62 74,82 78,94"/>
+    <line x1="50" y1="44" x2="50" y2="94"/>
+  </g>
+  <g stroke="#1a1a12" stroke-width="0.6" opacity=".7">
+    <path d="M37,50 L50,56 M50,50 L63,56 M36,56 L50,62 M50,56 L64,62"/>
+    <path d="M34,62 L50,68 M50,62 L66,68 M32,68 L50,74 M50,68 L68,74"/>
+    <path d="M30,74 L50,80 M50,74 L70,80 M27,80 L50,87 M50,80 L73,87"/>
+    <path d="M37,50 L50,50 M63,56 L50,56 M34,62 L66,62 M32,68 L68,68"/>
+    <path d="M30,74 L70,74 M27,80 L73,80 M24,87 L76,87"/>
+    <path d="M50,56 L37,56 M50,62 L34,62"/>
+  </g>
+  <path d="M26,32 C26,26 38,22 50,22 C62,22 74,26 74,32 C74,36 64,42 50,42 C36,42 26,36 26,32 Z" fill="#2980b9" opacity=".2"/>
+  <path d="M26,32 C26,26 38,22 50,22 C62,22 74,26 74,32 C74,36 64,42 50,42 C36,42 26,36 26,32 Z" fill="none" stroke="#1a1a12" stroke-width="1.25"/>
+  <path d="M26,32 C34,36 66,36 74,32" fill="none" stroke="#1a1a12" stroke-width="0.9"/>
+  <g stroke="#1a1a12" stroke-width="0.6" opacity=".75">
+    <line x1="31" y1="33.6" x2="33" y2="38"/><line x1="38" y1="35" x2="39" y2="39.6"/>
+    <line x1="45" y1="35.6" x2="45.5" y2="40.4"/><line x1="55" y1="35.6" x2="54.5" y2="40.4"/>
+    <line x1="62" y1="35" x2="61" y2="39.6"/><line x1="69" y1="33.6" x2="67" y2="38"/>
+    <line x1="30" y1="27" x2="70" y2="27"/>
+  </g>
+  <g fill="none" stroke="#1a1a12" stroke-width="1.05">
+    <path d="M36,22 C38,17 44,14 50,14 C56,14 62,17 64,22"/>
+    <line x1="50" y1="14" x2="50" y2="3"/>
+    <line x1="47" y1="8" x2="53" y2="8"/>
+    <line x1="48" y1="5.5" x2="52" y2="5.5"/>
+  </g>
+  <circle cx="50" cy="2" r="1.3" fill="#c0835a"/>
+  <rect x="44" y="86" width="12" height="8" fill="none" stroke="#1a1a12" stroke-width="1"/>
+</symbol>
+
+<symbol id="lm-brooklyn" viewBox="0 0 100 100">
+  <g stroke="#2980b9" stroke-width="0.7" opacity=".5" fill="none">
+    <path d="M0,84 Q10,81 20,84 T40,84 T60,84 T80,84 T100,84"/>
+    <path d="M0,90 Q10,87 20,90 T40,90 T60,90 T80,90 T100,90"/>
+    <path d="M0,96 Q10,93 20,96 T40,96 T60,96 T80,96 T100,96"/>
+  </g>
+  <g fill="none" stroke="#c0835a" stroke-width="1.3">
+    <path d="M18,74 L18,32 Q18,22 26,22 Q34,22 34,32 L34,74"/>
+    <path d="M22,74 L22,46 Q22,38 26,38 Q30,38 30,46 L30,74" stroke-width="1"/>
+    <path d="M22,34 Q22,28 26,28 Q30,28 30,34" stroke-width="1"/>
+    <path d="M66,74 L66,32 Q66,22 74,22 Q82,22 82,32 L82,74"/>
+    <path d="M70,74 L70,46 Q70,38 74,38 Q78,38 78,46 L78,74" stroke-width="1"/>
+    <path d="M70,34 Q70,28 74,28 Q78,28 78,34" stroke-width="1"/>
+  </g>
+  <g stroke="#c0835a" stroke-width="0.55" opacity=".7">
+    <line x1="18" y1="50" x2="22" y2="50"/><line x1="30" y1="50" x2="34" y2="50"/>
+    <line x1="18" y1="58" x2="22" y2="58"/><line x1="30" y1="58" x2="34" y2="58"/>
+    <line x1="18" y1="66" x2="22" y2="66"/><line x1="30" y1="66" x2="34" y2="66"/>
+    <line x1="66" y1="50" x2="70" y2="50"/><line x1="78" y1="50" x2="82" y2="50"/>
+    <line x1="66" y1="58" x2="70" y2="58"/><line x1="78" y1="58" x2="82" y2="58"/>
+    <line x1="66" y1="66" x2="70" y2="66"/><line x1="78" y1="66" x2="82" y2="66"/>
+  </g>
+  <path d="M0,62 Q12,58 26,24 Q40,56 50,58 Q60,56 74,24 Q88,58 100,62" fill="none" stroke="#1a1a12" stroke-width="1.2"/>
+  <path d="M0,68 Q12,65 26,30 Q40,60 50,62 Q60,60 74,30 Q88,65 100,68" fill="none" stroke="#1a1a12" stroke-width="0.8" opacity=".65"/>
+  <g stroke="#1a1a12" stroke-width="0.55" opacity=".8">
+    <line x1="26" y1="24" x2="10" y2="74"/><line x1="26" y1="24" x2="16" y2="74"/>
+    <line x1="26" y1="26" x2="38" y2="74"/><line x1="26" y1="26" x2="44" y2="74"/>
+    <line x1="26" y1="28" x2="50" y2="74"/>
+    <line x1="74" y1="24" x2="90" y2="74"/><line x1="74" y1="24" x2="84" y2="74"/>
+    <line x1="74" y1="26" x2="62" y2="74"/><line x1="74" y1="26" x2="56" y2="74"/>
+    <line x1="74" y1="28" x2="50" y2="74"/>
+  </g>
+  <g stroke="#1a1a12" stroke-width="0.5" opacity=".6">
+    <line x1="6" y1="61" x2="6" y2="74"/><line x1="12" y1="58" x2="12" y2="74"/>
+    <line x1="40" y1="54" x2="40" y2="74"/><line x1="46" y1="57" x2="46" y2="74"/>
+    <line x1="54" y1="57" x2="54" y2="74"/><line x1="60" y1="54" x2="60" y2="74"/>
+    <line x1="88" y1="58" x2="88" y2="74"/><line x1="94" y1="61" x2="94" y2="74"/>
+  </g>
+  <line x1="0" y1="74" x2="100" y2="74" stroke="#1a1a12" stroke-width="1.7"/>
+  <line x1="0" y1="77" x2="100" y2="77" stroke="#1a1a12" stroke-width="0.8" opacity=".6"/>
+</symbol>
+
+<symbol id="lm-washington" viewBox="0 0 100 100">
+  <path d="M44,88 L45.4,24 L50,12 L54.6,24 L56,88 Z" fill="none" stroke="#1a1a12" stroke-width="1.35"/>
+  <line x1="45.4" y1="24" x2="54.6" y2="24" stroke="#1a1a12" stroke-width="1"/>
+  <g stroke="#1a1a12" stroke-width="0.55" opacity=".5">
+    <line x1="44.2" y1="80" x2="55.8" y2="80"/><line x1="44.3" y1="72" x2="55.7" y2="72"/>
+    <line x1="44.5" y1="64" x2="55.5" y2="64"/><line x1="44.7" y1="56" x2="55.3" y2="56"/>
+    <line x1="44.9" y1="48" x2="55.1" y2="48"/><line x1="45.1" y1="40" x2="54.9" y2="40"/>
+    <line x1="45.3" y1="32" x2="54.7" y2="32"/>
+  </g>
+  <line x1="44.6" y1="54" x2="55.4" y2="54" stroke="#1a1a12" stroke-width="1.1" opacity=".85"/>
+  <line x1="50" y1="24" x2="50" y2="12" stroke="#1a1a12" stroke-width="0.7" opacity=".5"/>
+  <g fill="#1a1a12">
+    <rect x="47.6" y="27" width="1.5" height="2.4"/><rect x="50.9" y="27" width="1.5" height="2.4"/>
+  </g>
+  <line x1="6" y1="88" x2="94" y2="88" stroke="#1a1a12" stroke-width="1.6"/>
+  <g stroke="#1a1a12" stroke-width="0.8">
+    <line x1="18" y1="88" x2="18" y2="76"/><line x1="26" y1="88" x2="26" y2="74"/>
+    <line x1="34" y1="88" x2="34" y2="73"/>
+    <line x1="66" y1="88" x2="66" y2="73"/><line x1="74" y1="88" x2="74" y2="74"/>
+    <line x1="82" y1="88" x2="82" y2="76"/>
+  </g>
+  <g fill="#c0835a" opacity=".85">
+    <path d="M18,76 L23,77.6 L18,79.2 Z"/><path d="M26,74 L31,75.6 L26,77.2 Z"/>
+    <path d="M34,73 L39,74.6 L34,76.2 Z"/>
+    <path d="M66,73 L61,74.6 L66,76.2 Z"/><path d="M74,74 L69,75.6 L74,77.2 Z"/>
+    <path d="M82,76 L77,77.6 L82,79.2 Z"/>
+  </g>
+  <g stroke="#1a1a12" stroke-width="0.6" opacity=".45">
+    <line x1="10" y1="93" x2="90" y2="93"/><line x1="16" y1="97" x2="84" y2="97"/>
+  </g>
+</symbol>
+
+
+
+<symbol id="lm-lincoln" viewBox="0 0 100 100">
+  <g fill="none" stroke="#1a1a12" stroke-width="1.3">
+    <rect x="14" y="22" width="72" height="8"/>
+    <rect x="17" y="30" width="66" height="5"/>
+    <rect x="20" y="70" width="60" height="4"/>
+  </g>
+  <g stroke="#1a1a12" stroke-width="0.6" opacity=".6">
+    <line x1="20" y1="22" x2="20" y2="30"/><line x1="28" y1="22" x2="28" y2="30"/>
+    <line x1="36" y1="22" x2="36" y2="30"/><line x1="44" y1="22" x2="44" y2="30"/>
+    <line x1="52" y1="22" x2="52" y2="30"/><line x1="60" y1="22" x2="60" y2="30"/>
+    <line x1="68" y1="22" x2="68" y2="30"/><line x1="76" y1="22" x2="76" y2="30"/>
+    <line x1="14" y1="26" x2="86" y2="26"/>
+  </g>
+  <rect x="26" y="38" width="48" height="32" fill="#1a1a12" opacity=".13"/>
+  <path d="M46,70 L46,56 C46,53 48,51 50,51 C52,51 54,53 54,56 L54,70 Z" fill="#1a1a12" opacity=".5"/>
+  <circle cx="50" cy="48" r="2.4" fill="#1a1a12" opacity=".5"/>
+  <g fill="none" stroke="#1a1a12" stroke-width="1.15">
+    <rect x="18" y="35" width="5" height="35"/><rect x="26" y="35" width="5" height="35"/>
+    <rect x="34" y="35" width="5" height="35"/><rect x="42" y="35" width="5" height="35"/>
+    <rect x="53" y="35" width="5" height="35"/><rect x="61" y="35" width="5" height="35"/>
+    <rect x="69" y="35" width="5" height="35"/><rect x="77" y="35" width="5" height="35"/>
+  </g>
+  <g stroke="#1a1a12" stroke-width="0.45" opacity=".65">
+    <line x1="19.6" y1="38" x2="19.6" y2="68"/><line x1="21.2" y1="38" x2="21.2" y2="68"/>
+    <line x1="27.6" y1="38" x2="27.6" y2="68"/><line x1="29.2" y1="38" x2="29.2" y2="68"/>
+    <line x1="35.6" y1="38" x2="35.6" y2="68"/><line x1="37.2" y1="38" x2="37.2" y2="68"/>
+    <line x1="43.6" y1="38" x2="43.6" y2="68"/><line x1="45.2" y1="38" x2="45.2" y2="68"/>
+    <line x1="54.6" y1="38" x2="54.6" y2="68"/><line x1="56.2" y1="38" x2="56.2" y2="68"/>
+    <line x1="62.6" y1="38" x2="62.6" y2="68"/><line x1="64.2" y1="38" x2="64.2" y2="68"/>
+    <line x1="70.6" y1="38" x2="70.6" y2="68"/><line x1="72.2" y1="38" x2="72.2" y2="68"/>
+    <line x1="78.6" y1="38" x2="78.6" y2="68"/><line x1="80.2" y1="38" x2="80.2" y2="68"/>
+  </g>
+  <g fill="none" stroke="#1a1a12" stroke-width="0.9">
+    <path d="M14,74 L86,74 L88,78 L12,78 Z"/>
+    <path d="M12,78 L88,78 L90,82 L10,82 Z"/>
+    <path d="M10,82 L90,82 L92,86 L8,86 Z"/>
+    <path d="M8,86 L92,86 L94,90 L6,90 Z"/>
+  </g>
+  <line x1="4" y1="90" x2="96" y2="90" stroke="#1a1a12" stroke-width="1.5"/>
+</symbol>
+
+<symbol id="lm-whitehouse" viewBox="0 0 100 100">
+  <g fill="none" stroke="#1a1a12" stroke-width="1.25">
+    <rect x="6" y="54" width="28" height="30"/>
+    <rect x="66" y="54" width="28" height="30"/>
+    <rect x="34" y="46" width="32" height="38"/>
+  </g>
+  <polygon points="34,46 50,34 66,46" fill="none" stroke="#1a1a12" stroke-width="1.25"/>
+  <line x1="36" y1="44" x2="64" y2="44" stroke="#1a1a12" stroke-width="0.7" opacity=".7"/>
+  <circle cx="50" cy="41" r="1.8" fill="none" stroke="#1a1a12" stroke-width="0.6" opacity=".7"/>
+  <g fill="none" stroke="#1a1a12" stroke-width="1">
+    <rect x="37" y="50" width="3.4" height="26"/><rect x="44" y="50" width="3.4" height="26"/>
+    <rect x="52.6" y="50" width="3.4" height="26"/><rect x="59.6" y="50" width="3.4" height="26"/>
+  </g>
+  <g fill="none" stroke="#1a1a12" stroke-width="0.85">
+    <path d="M46,84 L46,72 Q46,68 50,68 Q54,68 54,72 L54,84 Z"/>
+    <path d="M47,70 Q50,67.5 53,70" />
+  </g>
+  <g fill="none" stroke="#1a1a12" stroke-width="0.8" opacity=".85">
+    <rect x="10" y="59" width="4.6" height="7"/><rect x="18" y="59" width="4.6" height="7"/>
+    <rect x="26" y="59" width="4.6" height="7"/>
+    <rect x="10" y="71" width="4.6" height="7"/><rect x="18" y="71" width="4.6" height="7"/>
+    <rect x="26" y="71" width="4.6" height="7"/>
+    <rect x="70" y="59" width="4.6" height="7"/><rect x="78" y="59" width="4.6" height="7"/>
+    <rect x="86" y="59" width="4.6" height="7"/>
+    <rect x="70" y="71" width="4.6" height="7"/><rect x="78" y="71" width="4.6" height="7"/>
+    <rect x="86" y="71" width="4.6" height="7"/>
+  </g>
+  <g stroke="#1a1a12" stroke-width="0.6" opacity=".6">
+    <line x1="9" y1="57.4" x2="15.6" y2="57.4"/><line x1="17" y1="57.4" x2="23.6" y2="57.4"/>
+    <line x1="25" y1="57.4" x2="31.6" y2="57.4"/>
+    <line x1="69" y1="57.4" x2="75.6" y2="57.4"/><line x1="77" y1="57.4" x2="83.6" y2="57.4"/>
+    <line x1="85" y1="57.4" x2="91.6" y2="57.4"/>
+    <line x1="6" y1="68" x2="34" y2="68"/><line x1="66" y1="68" x2="94" y2="68"/>
+  </g>
+  <g stroke="#1a1a12" stroke-width="0.85">
+    <line x1="8" y1="54" x2="8" y2="50"/><line x1="12" y1="54" x2="12" y2="50"/>
+    <line x1="16" y1="54" x2="16" y2="50"/><line x1="20" y1="54" x2="20" y2="50"/>
+    <line x1="24" y1="54" x2="24" y2="50"/><line x1="28" y1="54" x2="28" y2="50"/>
+    <line x1="32" y1="54" x2="32" y2="50"/>
+    <line x1="68" y1="54" x2="68" y2="50"/><line x1="72" y1="54" x2="72" y2="50"/>
+    <line x1="76" y1="54" x2="76" y2="50"/><line x1="80" y1="54" x2="80" y2="50"/>
+    <line x1="84" y1="54" x2="84" y2="50"/><line x1="88" y1="54" x2="88" y2="50"/>
+    <line x1="92" y1="54" x2="92" y2="50"/>
+    <line x1="6" y1="50" x2="34" y2="50"/><line x1="66" y1="50" x2="94" y2="50"/>
+  </g>
+  <g fill="none" stroke="#1a1a12" stroke-width="0.9">
+    <rect x="14" y="44" width="4" height="6"/><rect x="82" y="44" width="4" height="6"/>
+  </g>
+  <line x1="2" y1="84" x2="98" y2="84" stroke="#1a1a12" stroke-width="1.5"/>
+  <g stroke="#27ae60" stroke-width="0.9" opacity=".6" fill="none">
+    <path d="M4,88 Q10,84 16,88"/><path d="M40,90 Q50,86 60,90"/><path d="M84,88 Q90,84 96,88"/>
+  </g>
+</symbol>
+
+<symbol id="lm-capitol" viewBox="0 0 100 100">
+  <g fill="none" stroke="#1a1a12" stroke-width="1.2">
+    <rect x="4" y="62" width="26" height="22"/>
+    <rect x="70" y="62" width="26" height="22"/>
+    <rect x="34" y="58" width="32" height="26"/>
+  </g>
+  <g fill="none" stroke="#1a1a12" stroke-width="0.9">
+    <polygon points="34,58 50,50 66,58"/>
+    <rect x="37" y="62" width="2.8" height="22"/><rect x="43" y="62" width="2.8" height="22"/>
+    <rect x="54" y="62" width="2.8" height="22"/><rect x="60" y="62" width="2.8" height="22"/>
+    <path d="M46,84 L46,72 Q46,68 50,68 Q54,68 54,72 L54,84 Z"/>
+  </g>
+  <g fill="none" stroke="#1a1a12" stroke-width="0.8" opacity=".85">
+    <polygon points="6,62 17,55 28,62"/>
+    <polygon points="72,62 83,55 94,62"/>
+    <rect x="8" y="66" width="4" height="8"/><rect x="15" y="66" width="4" height="8"/>
+    <rect x="22" y="66" width="4" height="8"/>
+    <rect x="74" y="66" width="4" height="8"/><rect x="81" y="66" width="4" height="8"/>
+    <rect x="88" y="66" width="4" height="8"/>
+    <line x1="4" y1="78" x2="30" y2="78"/><line x1="70" y1="78" x2="96" y2="78"/>
+  </g>
+  <g fill="none" stroke="#1a1a12" stroke-width="1.15">
+    <rect x="38" y="42" width="24" height="8"/>
+    <path d="M38,42 C38,26 62,26 62,42 Z" fill="#fffafc"/>
+  </g>
+  <g stroke="#1a1a12" stroke-width="0.55" opacity=".7">
+    <path d="M43,42 C43,32 44,28 46.5,26.4"/>
+    <path d="M47,42 C47,32 47.6,28 48.6,26"/>
+    <path d="M53,42 C53,32 52.4,28 51.4,26"/>
+    <path d="M57,42 C57,32 56,28 53.5,26.4"/>
+    <path d="M39.4,36 C46,33 54,33 60.6,36"/>
+  </g>
+  <g fill="none" stroke="#1a1a12" stroke-width="0.85">
+    <rect x="40" y="46" width="2.2" height="4"/><rect x="45" y="46" width="2.2" height="4"/>
+    <rect x="52.8" y="46" width="2.2" height="4"/><rect x="57.8" y="46" width="2.2" height="4"/>
+    <rect x="45" y="20" width="10" height="6"/>
+    <line x1="47" y1="20" x2="47" y2="26"/><line x1="53" y1="20" x2="53" y2="26"/>
+    <path d="M46,20 C46,16 54,16 54,20"/>
+  </g>
+  <g fill="#1a1a12">
+    <circle cx="50" cy="12" r="1.9"/>
+    <path d="M50,14 L48.6,17.5 L51.4,17.5 Z"/>
+    <path d="M48.3,10.6 L46.6,8.4 L48.6,9"/>
+  </g>
+  <line x1="2" y1="84" x2="98" y2="84" stroke="#1a1a12" stroke-width="1.5"/>
+  <g fill="none" stroke="#1a1a12" stroke-width="0.8">
+    <path d="M30,84 L70,84 L72,88 L28,88 Z"/>
+    <path d="M28,88 L72,88 L74,92 L26,92 Z"/>
+  </g>
+</symbol>
+
+<symbol id="lm-hoover" viewBox="0 0 100 100">
+  <path d="M0,6 L0,94 L26,94 L26,26 Z" fill="#1a1a12" opacity=".12"/>
+  <path d="M100,6 L100,94 L74,94 L74,26 Z" fill="#1a1a12" opacity=".12"/>
+  <path d="M0,6 L0,94 L26,94 L26,26 Z" fill="none" stroke="#1a1a12" stroke-width="1.25"/>
+  <path d="M100,6 L100,94 L74,94 L74,26 Z" fill="none" stroke="#1a1a12" stroke-width="1.25"/>
+  <g stroke="#1a1a12" stroke-width="0.5" opacity=".45">
+    <path d="M1,32 L24,36"/><path d="M1,46 L25,49"/><path d="M2,60 L25,62"/><path d="M3,74 L25,75"/>
+    <path d="M99,32 L76,36"/><path d="M99,46 L75,49"/><path d="M98,60 L75,62"/><path d="M97,74 L75,75"/>
+  </g>
+  <path d="M26,34 Q50,48 74,34 L74,94 L26,94 Z" fill="#2980b9" opacity=".13"/>
+  <path d="M26,34 Q50,48 74,34" fill="none" stroke="#1a1a12" stroke-width="1.45"/>
+  <path d="M26,40 Q50,54 74,40" fill="none" stroke="#1a1a12" stroke-width="0.85" opacity=".6"/>
+  <g stroke="#1a1a12" stroke-width="0.5" opacity=".55">
+    <path d="M32,36.6 L32,94"/><path d="M38,39.6 L38,94"/><path d="M44,41.8 L44,94"/>
+    <path d="M50,42.8 L50,94"/><path d="M56,41.8 L56,94"/><path d="M62,39.6 L62,94"/>
+    <path d="M68,36.6 L68,94"/>
+    <path d="M27,58 Q50,66 73,58"/><path d="M27,74 Q50,80 73,74"/>
+  </g>
+  <g fill="#fffafc" stroke="#1a1a12" stroke-width="1">
+    <rect x="31" y="22" width="5" height="16"/><rect x="40" y="20" width="5" height="18"/>
+    <rect x="55" y="20" width="5" height="18"/><rect x="64" y="22" width="5" height="16"/>
+  </g>
+  <g stroke="#1a1a12" stroke-width="0.5" opacity=".7">
+    <line x1="31" y1="26" x2="36" y2="26"/><line x1="31" y1="31" x2="36" y2="31"/>
+    <line x1="40" y1="25" x2="45" y2="25"/><line x1="40" y1="30" x2="45" y2="30"/>
+    <line x1="55" y1="25" x2="60" y2="25"/><line x1="55" y1="30" x2="60" y2="30"/>
+    <line x1="64" y1="26" x2="69" y2="26"/><line x1="64" y1="31" x2="69" y2="31"/>
+  </g>
+  <g stroke="#2980b9" stroke-width="0.85" opacity=".65" fill="none">
+    <path d="M26,14 Q38,11 50,14 Q62,17 74,14"/>
+    <path d="M26,20 Q38,17 50,20 Q62,23 74,20"/>
+  </g>
+  <g fill="#fffafc" stroke="#1a1a12" stroke-width="0.9">
+    <path d="M34,94 L34,84 L44,84 L44,94 Z"/>
+    <path d="M56,94 L56,84 L66,84 L66,94 Z"/>
+  </g>
+  <g stroke="#1a1a12" stroke-width="0.45" opacity=".6">
+    <line x1="37" y1="86" x2="37" y2="94"/><line x1="41" y1="86" x2="41" y2="94"/>
+    <line x1="59" y1="86" x2="59" y2="94"/><line x1="63" y1="86" x2="63" y2="94"/>
+  </g>
+  <line x1="0" y1="94" x2="100" y2="94" stroke="#1a1a12" stroke-width="1.5"/>
+</symbol>
+
+<symbol id="lm-bean" viewBox="0 0 100 100">
+  <path d="M8,56 C8,36 26,24 50,24 C74,24 92,36 92,56 C92,68 80,76 68,76 C62,76 58,72 50,72 C42,72 38,76 32,76 C20,76 8,68 8,56 Z" fill="#1a1a12" opacity=".1"/>
+  <path d="M8,56 C8,36 26,24 50,24 C74,24 92,36 92,56 C92,68 80,76 68,76 C62,76 58,72 50,72 C42,72 38,76 32,76 C20,76 8,68 8,56 Z" fill="none" stroke="#1a1a12" stroke-width="1.45"/>
+  <path d="M32,76 C36,66 42,62 50,62 C58,62 64,66 68,76" fill="#fffafc" stroke="#1a1a12" stroke-width="1.1"/>
+  <g stroke="#1a1a12" stroke-width="0.55" opacity=".55" fill="none">
+    <path d="M12,50 C24,42 40,38 50,38 C60,38 76,42 88,50"/>
+    <path d="M10,58 C24,52 38,48 50,48 C62,48 76,52 90,58"/>
+    <path d="M14,66 C26,60 38,57 50,57"/>
+    <path d="M86,66 C74,60 62,57 50,57"/>
+    <path d="M20,32 C30,44 34,58 32,74"/>
+    <path d="M80,32 C70,44 66,58 68,74"/>
+  </g>
+  <g fill="#1a1a12" opacity=".4">
+    <rect x="34" y="42" width="3" height="7"/><rect x="38.5" y="38" width="3.5" height="11"/>
+    <rect x="43.5" y="41" width="2.6" height="8"/><rect x="47.5" y="35" width="4" height="14"/>
+    <rect x="53" y="40" width="3" height="9"/><rect x="57.5" y="37" width="3.4" height="12"/>
+    <rect x="62.5" y="43" width="2.8" height="6"/>
+  </g>
+  <path d="M16,38 C22,32 32,28 42,27" fill="none" stroke="#fffafc" stroke-width="2.4" opacity=".85"/>
+  <path d="M74,32 C80,35 85,40 88,46" fill="none" stroke="#fffafc" stroke-width="1.6" opacity=".7"/>
+  <line x1="4" y1="80" x2="96" y2="80" stroke="#1a1a12" stroke-width="1.5"/>
+  <g stroke="#1a1a12" stroke-width="0.5" opacity=".4">
+    <line x1="2" y1="86" x2="98" y2="86"/><line x1="2" y1="92" x2="98" y2="92"/>
+    <line x1="20" y1="80" x2="20" y2="98"/><line x1="50" y1="80" x2="50" y2="98"/>
+    <line x1="80" y1="80" x2="80" y2="98"/>
+  </g>
+  <g fill="#1a1a12" opacity=".75">
+    <circle cx="16" cy="76" r="1.6"/><path d="M14.6,78 L17.4,78 L18,84 L15.6,84 L15,88 L14,88 L14.6,82 Z"/>
+    <circle cx="85" cy="77" r="1.5"/><path d="M83.7,79 L86.3,79 L86.8,84.5 L84.6,84.5 L84,88 L83,88 L83.6,82.5 Z"/>
+  </g>
+</symbol>
+
+<symbol id="lm-bell" viewBox="0 0 100 100">
+  <g fill="none" stroke="#1a1a12" stroke-width="1.2">
+    <rect x="30" y="8" width="40" height="8" rx="1"/>
+    <path d="M38,16 L38,22 M62,16 L62,22"/>
+  </g>
+  <g stroke="#1a1a12" stroke-width="0.5" opacity=".6">
+    <line x1="30" y1="11" x2="70" y2="11"/><line x1="30" y1="13.5" x2="70" y2="13.5"/>
+  </g>
+  <g fill="#1a1a12" opacity=".8">
+    <circle cx="36" cy="12" r="1"/><circle cx="64" cy="12" r="1"/>
+  </g>
+  <path d="M40,22 C40,22 34,44 30,58 C27,66 30,74 40,74 L60,74 C70,74 73,66 70,58 C66,44 60,22 60,22 Z" fill="#c0835a" opacity=".22"/>
+  <path d="M40,22 C40,22 34,44 30,58 C27,66 30,74 40,74 L60,74 C70,74 73,66 70,58 C66,44 60,22 60,22 Z" fill="none" stroke="#1a1a12" stroke-width="1.35"/>
+  <g fill="none" stroke="#1a1a12" stroke-width="0.85">
+    <path d="M37,32 C43,30 57,30 63,32"/>
+    <path d="M34,44 C42,41 58,41 66,44"/>
+    <path d="M31,56 C40,52 60,52 69,56"/>
+  </g>
+  <g stroke="#1a1a12" stroke-width="0.45" opacity=".65">
+    <line x1="36" y1="37" x2="36.6" y2="40"/><line x1="40" y1="36" x2="40.5" y2="39.4"/>
+    <line x1="44" y1="35.4" x2="44.4" y2="39"/><line x1="48" y1="35" x2="48.2" y2="38.8"/>
+    <line x1="52" y1="35" x2="51.8" y2="38.8"/><line x1="56" y1="35.4" x2="55.6" y2="39"/>
+    <line x1="60" y1="36" x2="59.5" y2="39.4"/><line x1="64" y1="37" x2="63.4" y2="40"/>
+  </g>
+  <rect x="30" y="74" width="40" height="7" rx="1" fill="#c0835a" opacity=".3" stroke="#1a1a12" stroke-width="1.2"/>
+  <path d="M55,24 L52,34 L57,42 L53,52 L58,62 L54.5,74" fill="none" stroke="#1a1a12" stroke-width="2.1" stroke-linejoin="round"/>
+  <path d="M55,24 L52,34 L57,42 L53,52 L58,62 L54.5,74" fill="none" stroke="#fffafc" stroke-width="0.9"/>
+  <circle cx="55.4" cy="26" r="1.5" fill="none" stroke="#1a1a12" stroke-width="1"/>
+  <g fill="none" stroke="#1a1a12" stroke-width="1">
+    <line x1="50" y1="22" x2="50" y2="76"/>
+    <ellipse cx="50" cy="79" rx="3" ry="2.2"/>
+  </g>
+  <line x1="18" y1="88" x2="82" y2="88" stroke="#1a1a12" stroke-width="1.4"/>
+  <g stroke="#1a1a12" stroke-width="0.9">
+    <line x1="34" y1="81" x2="34" y2="88"/><line x1="66" y1="81" x2="66" y2="88"/>
+  </g>
+</symbol>
+
+<symbol id="lm-alcatraz" viewBox="0 0 100 100">
+  <g stroke="#2980b9" stroke-width="0.75" opacity=".55" fill="none">
+    <path d="M0,80 Q10,77 20,80 T40,80 T60,80 T80,80 T100,80"/>
+    <path d="M0,86 Q10,83 20,86 T40,86 T60,86 T80,86 T100,86"/>
+    <path d="M0,92 Q10,89 20,92 T40,92 T60,92 T80,92 T100,92"/>
+    <path d="M6,83 Q9,81.5 12,83"/><path d="M62,89 Q65,87.5 68,89"/>
+  </g>
+  <path d="M6,80 L14,66 L30,60 L52,58 L74,62 L88,70 L94,80 Z" fill="none" stroke="#1a1a12" stroke-width="1.3"/>
+  <g stroke="#1a1a12" stroke-width="0.5" opacity=".5">
+    <path d="M10,74 L26,70"/><path d="M14,78 L34,74"/><path d="M66,68 L88,74"/>
+    <path d="M60,72 L84,78"/><path d="M30,76 L58,76"/>
+  </g>
+  <g fill="none" stroke="#1a1a12" stroke-width="1.2">
+    <rect x="24" y="40" width="48" height="20"/>
+    <rect x="42" y="30" width="14" height="10"/>
+    <polygon points="24,40 48,32 72,40"/>
+  </g>
+  <g fill="none" stroke="#1a1a12" stroke-width="0.7" opacity=".85">
+    <rect x="27" y="45" width="4" height="6"/><rect x="34" y="45" width="4" height="6"/>
+    <rect x="41" y="45" width="4" height="6"/><rect x="48" y="45" width="4" height="6"/>
+    <rect x="55" y="45" width="4" height="6"/><rect x="62" y="45" width="4" height="6"/>
+    <rect x="27" y="53" width="4" height="5"/><rect x="34" y="53" width="4" height="5"/>
+    <rect x="41" y="53" width="4" height="5"/><rect x="48" y="53" width="4" height="5"/>
+    <rect x="55" y="53" width="4" height="5"/><rect x="62" y="53" width="4" height="5"/>
+    <line x1="45" y1="33" x2="45" y2="40"/><line x1="52" y1="33" x2="52" y2="40"/>
+  </g>
+  <g fill="none" stroke="#1a1a12" stroke-width="1.15">
+    <path d="M74,58 L75.6,26 L82.4,26 L84,58 Z"/>
+    <rect x="74.6" y="20" width="8.8" height="6"/>
+    <path d="M76,20 L77,14 L81,14 L82,20"/>
+    <path d="M76.6,14 L79,10 L81.4,14"/>
+  </g>
+  <g stroke="#1a1a12" stroke-width="0.5" opacity=".6">
+    <line x1="75" y1="36" x2="83" y2="36"/><line x1="74.8" y1="44" x2="83.2" y2="44"/>
+    <line x1="74.6" y1="52" x2="83.4" y2="52"/>
+    <line x1="79" y1="20" x2="79" y2="26"/>
+  </g>
+  <g stroke="#c0835a" stroke-width="0.8" opacity=".75">
+    <line x1="72" y1="15" x2="66" y2="12"/><line x1="72" y1="17" x2="66" y2="18"/>
+    <line x1="86" y1="15" x2="92" y2="12"/><line x1="86" y1="17" x2="92" y2="18"/>
+  </g>
+  <circle cx="79" cy="16.5" r="1.6" fill="#c0835a"/>
+  <g fill="none" stroke="#1a1a12" stroke-width="0.8">
+    <path d="M14,66 L14,56 M20,66 L20,56 M14,56 L20,56 M17,56 L17,50"/>
+    <ellipse cx="17" cy="47" rx="5" ry="3.4"/>
+  </g>
+  <path d="M8,22 Q11,19 14,22 Q11,21 8,22" fill="#1a1a12" opacity=".6"/>
+  <path d="M20,16 Q24,12 28,16 Q24,14.6 20,16" fill="#1a1a12" opacity=".5"/>
+</symbol>
+
+<symbol id="lm-alamo" viewBox="0 0 100 100">
+  <path d="M4,88 L4,62 L20,62 L20,88 Z" fill="none" stroke="#1a1a12" stroke-width="1.1"/>
+  <path d="M96,88 L96,62 L80,62 L80,88 Z" fill="none" stroke="#1a1a12" stroke-width="1.1"/>
+  <g stroke="#1a1a12" stroke-width="0.5" opacity=".5">
+    <line x1="4" y1="68" x2="20" y2="68"/><line x1="4" y1="75" x2="20" y2="75"/><line x1="4" y1="82" x2="20" y2="82"/>
+    <line x1="80" y1="68" x2="96" y2="68"/><line x1="80" y1="75" x2="96" y2="75"/><line x1="80" y1="82" x2="96" y2="82"/>
+    <line x1="12" y1="62" x2="12" y2="88"/><line x1="88" y1="62" x2="88" y2="88"/>
+  </g>
+  <path d="M20,88 L20,42 L24,42 L24,34 Q24,27 31,27 L34,27 Q34,16 50,16 Q66,16 66,27 L69,27 Q76,27 76,34 L76,42 L80,42 L80,88 Z" fill="#c0835a" opacity=".2"/>
+  <path d="M20,88 L20,42 L24,42 L24,34 Q24,27 31,27 L34,27 Q34,16 50,16 Q66,16 66,27 L69,27 Q76,27 76,34 L76,42 L80,42 L80,88 Z" fill="none" stroke="#1a1a12" stroke-width="1.35"/>
+  <g stroke="#1a1a12" stroke-width="0.5" opacity=".45">
+    <line x1="20" y1="50" x2="80" y2="50"/><line x1="20" y1="58" x2="80" y2="58"/>
+    <line x1="20" y1="66" x2="80" y2="66"/><line x1="20" y1="74" x2="80" y2="74"/>
+    <line x1="20" y1="82" x2="80" y2="82"/>
+    <line x1="30" y1="42" x2="30" y2="50"/><line x1="45" y1="42" x2="45" y2="50"/>
+    <line x1="60" y1="42" x2="60" y2="50"/><line x1="70" y1="42" x2="70" y2="50"/>
+  </g>
+  <g fill="none" stroke="#1a1a12" stroke-width="1.05">
+    <rect x="28" y="52" width="6" height="36"/><rect x="38" y="52" width="6" height="36"/>
+    <rect x="56" y="52" width="6" height="36"/><rect x="66" y="52" width="6" height="36"/>
+    <rect x="27" y="48" width="8" height="4"/><rect x="37" y="48" width="8" height="4"/>
+    <rect x="55" y="48" width="8" height="4"/><rect x="65" y="48" width="8" height="4"/>
+  </g>
+  <g fill="#fffafc" stroke="#1a1a12" stroke-width="1.15">
+    <path d="M44,88 L44,64 Q44,56 50,56 Q56,56 56,64 L56,88 Z"/>
+  </g>
+  <g fill="none" stroke="#1a1a12" stroke-width="0.85">
+    <path d="M45.5,64 Q50,58.5 54.5,64"/>
+    <rect x="46" y="32" width="8" height="10" rx="4"/>
+    <line x1="50" y1="32" x2="50" y2="42"/>
+  </g>
+  <g fill="none" stroke="#1a1a12" stroke-width="0.9" opacity=".8">
+    <rect x="32" y="34" width="4" height="9" rx="2"/>
+    <rect x="64" y="34" width="4" height="9" rx="2"/>
+  </g>
+  <line x1="0" y1="88" x2="100" y2="88" stroke="#1a1a12" stroke-width="1.5"/>
+  <g stroke="#1a1a12" stroke-width="0.5" opacity=".35">
+    <line x1="4" y1="93" x2="96" y2="93"/><line x1="10" y1="97" x2="90" y2="97"/>
+  </g>
+</symbol>
+
+<symbol id="lm-niagara" viewBox="0 0 100 100">
+  <g stroke="#2980b9" stroke-width="0.7" opacity=".55" fill="none">
+    <path d="M0,8 Q16,5 30,8"/><path d="M70,8 Q84,5 100,8"/>
+    <path d="M0,16 Q16,13 28,16"/><path d="M72,16 Q86,13 100,16"/>
+  </g>
+  <path d="M0,4 L0,44 L18,52 L26,30 L74,30 L82,52 L100,44 L100,4 Z" fill="none" stroke="#1a1a12" stroke-width="1.2"/>
+  <g stroke="#1a1a12" stroke-width="0.5" opacity=".45">
+    <path d="M2,20 L17,22"/><path d="M2,30 L17,33"/><path d="M3,40 L17,44"/>
+    <path d="M98,20 L83,22"/><path d="M98,30 L83,33"/><path d="M97,40 L83,44"/>
+  </g>
+  <path d="M26,30 Q50,40 74,30 L74,36 Q50,46 26,36 Z" fill="#2980b9" opacity=".25"/>
+  <path d="M26,30 Q50,40 74,30" fill="none" stroke="#1a1a12" stroke-width="1.3"/>
+  <g stroke="#2980b9" stroke-width="1.4" stroke-linecap="round" opacity=".8">
+    <path d="M29,36 C28,50 26,60 24,72"/>
+    <path d="M34,38 C33,52 32,62 30,74"/>
+    <path d="M39,39.6 C38.6,54 38,64 36.6,76"/>
+    <path d="M44,40.6 C44,54 44,64 43,77"/>
+    <path d="M50,41 C50,54 50,65 50,78"/>
+    <path d="M56,40.6 C56,54 56,64 57,77"/>
+    <path d="M61,39.6 C61.4,54 62,64 63.4,76"/>
+    <path d="M66,38 C67,52 68,62 70,74"/>
+    <path d="M71,36 C72,50 74,60 76,72"/>
+  </g>
+  <g stroke="#2980b9" stroke-width="0.55" opacity=".5">
+    <path d="M31.5,44 C31,54 30,62 29,70"/><path d="M41.5,46 C41.2,56 41,64 40.4,74"/>
+    <path d="M53,46 C53,56 53,64 53.2,75"/><path d="M63.5,45 C64,55 64.6,63 65.4,73"/>
+    <path d="M73.5,43 C74.2,53 75.4,61 76.6,70"/>
+  </g>
+  <g fill="#fffafc" stroke="#2980b9" stroke-width="0.8" opacity=".9">
+    <path d="M18,80 C14,74 20,68 26,71 C28,65 38,66 39,72 C46,69 52,74 50,80 Z"/>
+    <path d="M56,84 C52,79 58,73 64,76 C66,71 76,72 77,77 C84,75 88,80 86,84 Z" opacity=".8"/>
+  </g>
+  <g stroke="#2980b9" stroke-width="0.7" opacity=".6" fill="none">
+    <path d="M0,88 Q14,85 28,88 T56,88 T84,88 T100,88"/>
+    <path d="M0,94 Q14,91 28,94 T56,94 T84,94 T100,94"/>
+  </g>
+  <g fill="none" stroke="#1a1a12" stroke-width="0.9">
+    <path d="M60,90 L74,90 L72,95 L62,95 Z"/>
+    <rect x="64" y="85" width="6" height="5"/>
+    <line x1="67" y1="85" x2="67" y2="81"/>
+  </g>
+  <path d="M8,26 Q11,23 14,26 Q11,24.6 8,26" fill="#1a1a12" opacity=".5"/>
+  <path d="M86,20 Q89,17 92,20 Q89,18.6 86,20" fill="#1a1a12" opacity=".4"/>
+</symbol>
+
+
+</defs></svg>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
   <script>
+  // Each city carries its map center/zoom plus a starting pitch/bearing tuned
+  // for a nice 3D approach angle, and a list of favourite spots to pin. Zoom
+  // starts pulled back to a whole-city view (parks, bridges, the shape of the
+  // coastline/river all visible) -- scroll/pinch or the +/- control to zoom in.
   var CITIES = {
-    "San Francisco":{lat:37.7749,lon:-122.4194,zoom:13,spots:[
-      {name:"Tartine Bakery",cat:"Cafe",emoji:"",lat:37.7612,lon:-122.4240,note:"Best morning bun in the city.",url:"https://tartinebakery.com"},
-      {name:"Dolores Park",cat:"Park",emoji:"",lat:37.7596,lon:-122.4269,note:"Picnics with a skyline view."},
-      {name:"SFMOMA",cat:"Museum",emoji:"",lat:37.7857,lon:-122.4011,note:"Essential contemporary art.",url:"https://www.sfmoma.org"},
-      {name:"Nopa",cat:"Restaurant",emoji:"",lat:37.7757,lon:-122.4367,note:"Late-night wood-fired cooking."},
-      {name:"City Lights Bookstore",cat:"Bookshop",emoji:"",lat:37.7979,lon:-122.4066,note:"Beat poetry birthplace."},
-      {name:"Sightglass Coffee",cat:"Coffee",emoji:"",lat:37.7754,lon:-122.4094,note:"Beautiful SoMa roastery."}
-    ]},
-    "New York City":{lat:40.7128,lon:-74.0060,zoom:12,spots:[
-      {name:"The Met",cat:"Museum",emoji:"",lat:40.7794,lon:-73.9632,note:"A whole day, every time.",url:"https://www.metmuseum.org"},
-      {name:"Russ and Daughters",cat:"Cafe",emoji:"",lat:40.7220,lon:-73.9874,note:"Legendary Lower East Side deli."},
-      {name:"Prospect Park",cat:"Park",emoji:"",lat:40.6602,lon:-73.9690,note:"Brooklyn breathing room."},
-      {name:"Via Carota",cat:"Restaurant",emoji:"",lat:40.7333,lon:-74.0027,note:"Perfect Italian in the West Village."},
-      {name:"McNally Jackson",cat:"Bookshop",emoji:"",lat:40.7233,lon:-73.9985,note:"Best indie bookshop downtown."},
-      {name:"Attaboy",cat:"Bar",emoji:"",lat:40.7216,lon:-73.9893,note:"No-menu cocktail bar, always surprising."}
-    ]},
-    "Boston":{lat:42.3601,lon:-71.0589,zoom:13,spots:[
-      {name:"Isabella Stewart Gardner Museum",cat:"Museum",emoji:"",lat:42.3382,lon:-71.0990,note:"The stolen paintings haunt the empty frames."},
-      {name:"Tatte Bakery",cat:"Cafe",emoji:"",lat:42.3467,lon:-71.0972,note:"Israeli-inspired, flaky and lovely."},
-      {name:"Arnold Arboretum",cat:"Park",emoji:"",lat:42.3015,lon:-71.1254,note:"Ancient trees, free and quiet."},
-      {name:"Oleana",cat:"Restaurant",emoji:"",lat:42.3650,lon:-71.1033,note:"Ana Sortun Eastern Mediterranean cooking."},
-      {name:"Trident Booksellers",cat:"Bookshop",emoji:"",lat:42.3497,lon:-71.0827,note:"Cozy Back Bay books and coffee."},
-      {name:"Drink",cat:"Bar",emoji:"",lat:42.3485,lon:-71.0480,note:"Fort Point cocktail institution."}
-    ]},
-    "Austin":{lat:30.2672,lon:-97.7431,zoom:12,spots:[
-      {name:"Blanton Museum of Art",cat:"Museum",emoji:"",lat:30.2823,lon:-97.7393,note:"Ellsworth Kelly chapel alone is worth it."},
-      {name:"Barton Springs Pool",cat:"Park",emoji:"",lat:30.2635,lon:-97.7720,note:"Cold spring-fed swim in the heat."},
-      {name:"Uchi",cat:"Restaurant",emoji:"",lat:30.2594,lon:-97.7584,note:"Japanese-Texas fusion, exceptional."},
-      {name:"BookPeople",cat:"Bookshop",emoji:"",lat:30.2798,lon:-97.7499,note:"Austin beloved indie bookstore."},
-      {name:"Whislers",cat:"Bar",emoji:"",lat:30.2632,lon:-97.7237,note:"Mezcal bar with a rooftop mezcaleria."},
-      {name:"Juan In A Million",cat:"Breakfast",emoji:"",lat:30.2639,lon:-97.7172,note:"Don Juan taco, a local legend."}
-    ]}
+    "San Francisco":{lat:37.7749,lon:-122.4194,zoom:11.6,pitch:48,bearing:-21,spots:[]},
+    "New York City":{lat:40.7300,lon:-73.9950,zoom:10.7,pitch:45,bearing:-17,spots:[]},
+    "Boston":{lat:42.3550,lon:-71.0700,zoom:11.6,pitch:45,bearing:8,spots:[]},
+    "Austin":{lat:30.2850,lon:-97.7400,zoom:11.4,pitch:45,bearing:19,spots:[]}
   };
 
   var CAT_COLORS={"Museum":"#8e44ad","Restaurant":"#e74c3c","Bar":"#2c3e50","Cafe":"#c0835a","Coffee":"#c0835a","Park":"#27ae60","Bookshop":"#2980b9","Breakfast":"#e67e22"};
   function colorForCat(c){return CAT_COLORS[c]||"#555";}
-  var leafletMap=null;
+  var cityMap=null;
+  var cityMarkers=[];
   var NAV_PAGES=["experiences","art","film","writings","readings","projects"];
+
+  // ---- Landmarks memory-match game (Projects page) ----
+  var LANDMARKS=[
+    {id:"lm-esb",name:"Empire State Building"},
+    {id:"lm-ggb",name:"Golden Gate Bridge"},
+    {id:"lm-arch",name:"Gateway Arch"},
+    {id:"lm-liberty",name:"Statue of Liberty"},
+    {id:"lm-rushmore",name:"Mount Rushmore"},
+    {id:"lm-hollywood",name:"Hollywood Sign"},
+    {id:"lm-needle",name:"Space Needle"},
+    {id:"lm-brooklyn",name:"Brooklyn Bridge"},
+    {id:"lm-washington",name:"Washington Monument"},
+    {id:"lm-lincoln",name:"Lincoln Memorial"},
+    {id:"lm-whitehouse",name:"The White House"},
+    {id:"lm-capitol",name:"U.S. Capitol"},
+    {id:"lm-hoover",name:"Hoover Dam"},
+    {id:"lm-bean",name:"Cloud Gate"},
+    {id:"lm-bell",name:"Liberty Bell"},
+    {id:"lm-alcatraz",name:"Alcatraz Island"},
+    {id:"lm-alamo",name:"The Alamo"},
+    {id:"lm-niagara",name:"Niagara Falls"}
+  ];
+  var memState={deck:[],flipped:[],matched:0,moves:0,lock:false,startedAt:0,elapsed:0,timerId:null,lastScore:null};
+
+  // ---- Projects index. Add future games here and they appear on /projects. ----
+  var PROJECTS={
+    "american-memory":{
+      title:"american memory",
+      blurb:"a thirty-six card matching game &mdash; eighteen landmarks, two of each",
+      tag:"game &middot; 2026",
+      thumb:"lm-arch",
+      open:function(){renderMemoryGame();loadLeaderboard();}
+    }
+  };
+  var PROJECT_ORDER=["american-memory"];
+
+  function renderProjectList(){
+    var list=document.getElementById("project-list");
+    if(!list)return;
+    list.innerHTML="";
+    PROJECT_ORDER.forEach(function(slug){
+      var p=PROJECTS[slug];
+      var el=document.createElement("button");
+      el.className="project-item";
+      el.innerHTML="<div class='project-thumb'><svg viewBox='0 0 100 100'><use href='#"+p.thumb+"'></use></svg></div>"+
+        "<div class='project-meta'><div class='project-title'>"+p.title+"</div>"+
+        "<div class='project-sub'>"+p.blurb+"</div>"+
+        "<div class='project-tag'>"+p.tag+"</div></div>";
+      el.addEventListener("click",function(){openProject(slug);});
+      list.appendChild(el);
+    });
+  }
+
+  // ---- Leaderboard storage ----------------------------------------------
+  // Paste your Supabase project URL and anon (public) key here to turn on the
+  // shared leaderboard. Until then scores are kept in this browser only.
+  var SUPABASE_URL="";
+  var SUPABASE_ANON_KEY="";
+  var LB_TABLE="scores";
+  var LB_LIMIT=10;
+  var LB_LOCAL_KEY="american-memory-scores";
+
+  function lbConfigured(){return !!(SUPABASE_URL&&SUPABASE_ANON_KEY);}
+
+  function lbLocalRead(){
+    try{
+      var raw=window.localStorage.getItem(LB_LOCAL_KEY);
+      return raw?JSON.parse(raw):[];
+    }catch(e){return [];}
+  }
+  function lbLocalWrite(rows){
+    try{window.localStorage.setItem(LB_LOCAL_KEY,JSON.stringify(rows.slice(0,50)));}catch(e){}
+  }
+  function lbSort(rows){
+    return rows.slice().sort(function(a,b){
+      if(a.moves!==b.moves)return a.moves-b.moves;
+      return (a.seconds||0)-(b.seconds||0);
+    });
+  }
+
+  function lbFetch(){
+    if(!lbConfigured())return Promise.resolve({rows:lbSort(lbLocalRead()).slice(0,LB_LIMIT),local:true});
+    var url=SUPABASE_URL.replace(/\/$/,"")+"/rest/v1/"+LB_TABLE+
+      "?select=name,moves,seconds,created_at&order=moves.asc,seconds.asc&limit="+LB_LIMIT;
+    return fetch(url,{headers:{apikey:SUPABASE_ANON_KEY,Authorization:"Bearer "+SUPABASE_ANON_KEY}})
+      .then(function(r){
+        if(!r.ok)throw new Error("HTTP "+r.status);
+        return r.json();
+      })
+      .then(function(rows){return {rows:rows,local:false};});
+  }
+
+  function lbSubmit(entry){
+    if(!lbConfigured()){
+      var rows=lbLocalRead();
+      rows.push(entry);
+      lbLocalWrite(lbSort(rows));
+      return Promise.resolve({local:true});
+    }
+    var url=SUPABASE_URL.replace(/\/$/,"")+"/rest/v1/"+LB_TABLE;
+    return fetch(url,{
+      method:"POST",
+      headers:{
+        apikey:SUPABASE_ANON_KEY,
+        Authorization:"Bearer "+SUPABASE_ANON_KEY,
+        "Content-Type":"application/json",
+        Prefer:"return=minimal"
+      },
+      body:JSON.stringify({name:entry.name,moves:entry.moves,seconds:entry.seconds})
+    }).then(function(r){
+      if(!r.ok)throw new Error("HTTP "+r.status);
+      return {local:false};
+    });
+  }
+
+  function fmtTime(sec){
+    sec=Math.max(0,Math.round(sec));
+    var m=Math.floor(sec/60),s=sec%60;
+    return m+":"+(s<10?"0":"")+s;
+  }
+
+  function loadLeaderboard(){
+    var body=document.getElementById("lb-body");
+    var note=document.getElementById("lb-note");
+    if(!body)return;
+    body.innerHTML="";
+    if(note)note.textContent="loading…";
+    lbFetch().then(function(res){
+      body.innerHTML="";
+      if(!res.rows.length){
+        if(note)note.textContent=res.local?"no scores yet — be the first. (saved in this browser only)":"no scores yet — be the first.";
+        return;
+      }
+      res.rows.forEach(function(row,i){
+        var tr=document.createElement("tr");
+        var mine=memState.lastScore&&row.name===memState.lastScore.name&&row.moves===memState.lastScore.moves;
+        if(mine)tr.className="lb-row-you";
+        tr.innerHTML="<td class='lb-rank'>"+(i+1)+"</td>"+
+          "<td class='lb-name'></td>"+
+          "<td class='lb-moves'>"+row.moves+" moves</td>"+
+          "<td class='lb-time'>"+fmtTime(row.seconds||0)+"</td>";
+        tr.querySelector(".lb-name").textContent=row.name;
+        body.appendChild(tr);
+      });
+      if(note)note.textContent=res.local?"saved in this browser only — add your Supabase keys to share scores.":"";
+    }).catch(function(err){
+      body.innerHTML="";
+      if(note)note.textContent="couldn't load the leaderboard ("+err.message+").";
+    });
+  }
+
+  function submitMemoryScore(ev){
+    if(ev&&ev.preventDefault)ev.preventDefault();
+    var input=document.getElementById("memory-name");
+    var note=document.getElementById("memory-win-note");
+    var name=(input&&input.value||"").trim();
+    if(!name){
+      if(note)note.textContent="enter a name first.";
+      if(input)input.focus();
+      return false;
+    }
+    var entry={name:name.slice(0,24),moves:memState.moves,seconds:Math.round(memState.elapsed)};
+    memState.lastScore=entry;
+    if(note)note.textContent="saving…";
+    lbSubmit(entry).then(function(res){
+      if(note)note.textContent=res.local?"saved to this browser.":"saved. nice work.";
+      if(input)input.value="";
+      var form=document.getElementById("memory-win-form");
+      if(form)form.style.display="none";
+      loadLeaderboard();
+    }).catch(function(err){
+      var rows=lbLocalRead();rows.push(entry);lbLocalWrite(lbSort(rows));
+      if(note)note.textContent="couldn't reach the leaderboard ("+err.message+") — saved locally instead.";
+      loadLeaderboard();
+    });
+    return false;
+  }
+
+  function shuffleDeck(arr){
+    for(var i=arr.length-1;i>0;i--){
+      var j=Math.floor(Math.random()*(i+1));
+      var tmp=arr[i];arr[i]=arr[j];arr[j]=tmp;
+    }
+    return arr;
+  }
+
+  function updateMemoryStats(){
+    var movesEl=document.getElementById("memory-moves");
+    var matchesEl=document.getElementById("memory-matches");
+    var timeEl=document.getElementById("memory-time");
+    if(movesEl)movesEl.textContent=memState.moves;
+    if(matchesEl)matchesEl.textContent=memState.matched+" / "+LANDMARKS.length;
+    if(timeEl)timeEl.textContent=fmtTime(memState.elapsed);
+  }
+
+  function stopMemoryTimer(){
+    if(memState.timerId){clearInterval(memState.timerId);memState.timerId=null;}
+  }
+
+  function startMemoryTimer(){
+    if(memState.timerId)return;
+    memState.startedAt=Date.now()-memState.elapsed*1000;
+    memState.timerId=setInterval(function(){
+      memState.elapsed=(Date.now()-memState.startedAt)/1000;
+      var timeEl=document.getElementById("memory-time");
+      if(timeEl)timeEl.textContent=fmtTime(memState.elapsed);
+    },250);
+  }
+
+  function onMemoryCardClick(el,idx){
+    if(memState.lock)return;
+    if(el.classList.contains("flipped")||el.classList.contains("matched"))return;
+    if(memState.flipped.length>=2)return;
+    startMemoryTimer();
+    el.classList.add("flipped");
+    memState.flipped.push({el:el,idx:idx});
+    if(memState.flipped.length===2){
+      memState.moves++;
+      updateMemoryStats();
+      memState.lock=true;
+      var a=memState.flipped[0],b=memState.flipped[1];
+      var cardA=memState.deck[a.idx],cardB=memState.deck[b.idx];
+      if(cardA.id===cardB.id){
+        setTimeout(function(){
+          a.el.classList.add("matched");
+          b.el.classList.add("matched");
+          memState.matched++;
+          updateMemoryStats();
+          memState.flipped=[];
+          memState.lock=false;
+          if(memState.matched===LANDMARKS.length){
+            stopMemoryTimer();
+            updateMemoryStats();
+            var winEl=document.getElementById("memory-win");
+            var winMoves=document.getElementById("memory-win-moves");
+            var winTime=document.getElementById("memory-win-time");
+            var form=document.getElementById("memory-win-form");
+            var note=document.getElementById("memory-win-note");
+            if(winMoves)winMoves.textContent=memState.moves;
+            if(winTime)winTime.textContent=fmtTime(memState.elapsed);
+            if(form)form.style.display="flex";
+            if(note)note.textContent="";
+            if(winEl)winEl.classList.add("show");
+          }
+        },400);
+      }else{
+        setTimeout(function(){
+          a.el.classList.remove("flipped");
+          b.el.classList.remove("flipped");
+          memState.flipped=[];
+          memState.lock=false;
+        },900);
+      }
+    }
+  }
+
+  function renderMemoryGame(){
+    var grid=document.getElementById("memory-grid");
+    if(!grid)return;
+    var deck=[];
+    LANDMARKS.forEach(function(lm){
+      deck.push({id:lm.id,name:lm.name});
+      deck.push({id:lm.id,name:lm.name});
+    });
+    shuffleDeck(deck);
+    memState.deck=deck;
+    memState.flipped=[];
+    memState.matched=0;
+    memState.moves=0;
+    memState.lock=false;
+    stopMemoryTimer();
+    memState.elapsed=0;
+    grid.innerHTML="";
+    deck.forEach(function(card,idx){
+      var el=document.createElement("div");
+      el.className="mem-card";
+      el.innerHTML="<div class='mem-card-inner'>"+
+        "<div class='mem-face mem-back'></div>"+
+        "<div class='mem-face mem-front'><svg viewBox='0 0 100 100'><use href='#"+card.id+"'></use></svg><div class='mem-front-label'>"+card.name+"</div></div>"+
+        "</div>";
+      el.addEventListener("click",function(){onMemoryCardClick(el,idx);});
+      grid.appendChild(el);
+    });
+    updateMemoryStats();
+    var winEl=document.getElementById("memory-win");
+    if(winEl)winEl.classList.remove("show");
+  }
 
   function buildCityMap(cityName){
     var city=CITIES[cityName];
     if(!city)return;
-    if(leafletMap){leafletMap.remove();leafletMap=null;}
+
+    if(cityMap){cityMap.remove();cityMap=null;}
+    cityMarkers=[];
     document.getElementById("spots-list").innerHTML="";
-    leafletMap=L.map("city-map",{zoomControl:true,scrollWheelZoom:true}).setView([city.lat,city.lon],city.zoom+1);
-    L.tileLayer("https://tiles.stadiamaps.com/tiles/stamen_toner_lite/{z}/{x}/{y}{r}.png",{attribution:"Stadia Maps / Stamen / OpenStreetMap",maxZoom:20}).addTo(leafletMap);
-    city.spots.forEach(function(spot){
+    var loadingEl=document.getElementById("city-map-loading");
+    if(loadingEl){
+      loadingEl.classList.remove("hidden");
+      loadingEl.style.display="flex";
+      loadingEl.textContent="loading map…";
+    }
+
+    function showMapProblem(msg){
+      if(!loadingEl)return;
+      loadingEl.style.display="flex";
+      loadingEl.classList.remove("hidden");
+      loadingEl.style.opacity="1";
+      loadingEl.style.whiteSpace="pre-line";
+      loadingEl.style.textAlign="center";
+      loadingEl.style.padding="0 2rem";
+      loadingEl.textContent=msg;
+    }
+
+    if(typeof maplibregl==="undefined"&&!window.__maplibreLoadFailed){
+      // The library is still being fetched (we try several CDNs in order --
+      // see the loader in <head> -- so this can take a moment). Poll briefly
+      // before giving up, rather than failing the instant someone clicks a
+      // city right as the page finishes loading.
+      var waited=0;
+      var poll=setInterval(function(){
+        waited+=250;
+        if(typeof maplibregl!=="undefined"){clearInterval(poll);buildCityMap(cityName);}
+        else if(window.__maplibreLoadFailed||waited>=10000){clearInterval(poll);buildCityMap(cityName);}
+      },250);
+      return;
+    }
+
+    if(typeof maplibregl==="undefined"){
+      // Every CDN we tried failed (blocked script, offline, etc).
+      showMapProblem("map library failed to load.\ncheck your internet connection and reload —\nif it keeps happening, an ad blocker or\nprivacy extension may be blocking the map library's CDN.");
+      return;
+    }
+
+    // A watchdog: if the style/tiles haven't finished loading after a few
+    // seconds, replace the silent blank/background block with an actual
+    // explanation instead of leaving it a mystery.
+    var settled=false;
+    var watchdog=setTimeout(function(){
+      if(settled)return;
+      showMapProblem("map is taking longer than expected to load.\nthis is usually an ad blocker or privacy extension\nblocking tiles.openfreemap.org — try disabling it\nfor this page, or open the browser console (right-click\n→ Inspect → Console) and tell Claude what error you see.");
+    },7000);
+
+    // OpenFreeMap's "Liberty" style: free, no API key, full street/building/POI
+    // detail (buildings render as 3D extrusions once zoomed in).
+    try{
+      cityMap=new maplibregl.Map({
+        container:"city-map",
+        style:"https://tiles.openfreemap.org/styles/liberty",
+        center:[city.lon,city.lat],
+        zoom:city.zoom,
+        pitch:city.pitch||60,
+        bearing:city.bearing||0,
+        antialias:true
+      });
+    }catch(err){
+      clearTimeout(watchdog);
+      showMapProblem("map failed to start: "+(err&&err.message?err.message:err)+"\nyour browser may not support WebGL.");
+      console.error("maplibre init failed",err);
+      return;
+    }
+
+    cityMap.addControl(new maplibregl.NavigationControl({visualizePitch:true}),"top-right");
+    cityMap.addControl(new maplibregl.ScaleControl({unit:"imperial"}),"bottom-left");
+
+    cityMap.on("load",function(){
+      settled=true;
+      clearTimeout(watchdog);
+      // Real elevation data (free, no key) for hills/terrain relief.
+      if(!cityMap.getSource("terrain-dem")){
+        cityMap.addSource("terrain-dem",{
+          type:"raster-dem",
+          tiles:["https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png"],
+          encoding:"terrarium",
+          tileSize:256,
+          maxzoom:15
+        });
+      }
+      cityMap.setTerrain({source:"terrain-dem",exaggeration:1.3});
+      cityMap.setSky({
+        "sky-color":"#b8d8f0",
+        "sky-horizon-blend":0.5,
+        "horizon-color":"#fdf6ee",
+        "horizon-fog-blend":0.5,
+        "fog-color":"#e8ecdf",
+        "fog-ground-blend":0.4
+      });
+      if(loadingEl){loadingEl.classList.add("hidden");}
+    });
+
+    cityMap.on("error",function(e){
+      var msg=e&&e.error&&e.error.message?e.error.message:"unknown error";
+      console.warn("city map error",e && e.error);
+      // A style-load failure (bad/blocked network response) means the map will
+      // never fire "load" -- surface it immediately instead of waiting on the
+      // watchdog, and include the actual error text so it's not a mystery.
+      if(/style|Failed to fetch|NetworkError|404|403/i.test(msg)&&!settled){
+        settled=true;
+        clearTimeout(watchdog);
+        showMapProblem("map failed to load: "+msg+"\nthis usually means tiles.openfreemap.org was\nblocked or unreachable (ad blocker, firewall,\nor offline). reload to try again.");
+      }
+    });
+
+    city.spots.forEach(function(spot,idx){
       var color=colorForCat(spot.cat);
-      var icon=L.divIcon({className:"",html:"<div class='spot-dot' style='background:"+color+"'></div>",iconSize:[14,14],iconAnchor:[7,7],popupAnchor:[0,-10]});
-      var marker=L.marker([spot.lat,spot.lon],{icon:icon}).addTo(leafletMap);
-      marker.bindPopup("<div class='popup-name'>"+spot.name+"</div><div class='popup-cat'>"+spot.cat+"</div>"+(spot.note?"<div class='popup-note'>"+spot.note+"</div>":"")+(spot.url?"<div class='popup-link'><a href='"+spot.url+"' target='_blank' rel='noopener'>visit website &#8599;</a></div>":""),{maxWidth:220});
+      var el=document.createElement("div");
+      el.className="spot-dot";
+      el.style.background=color;
+
+      var popupHtml="<div class='popup-name'>"+spot.name+"</div><div class='popup-cat'>"+spot.cat+"</div>"+
+        (spot.note?"<div class='popup-note'>"+spot.note+"</div>":"")+
+        (spot.url?"<div class='popup-link'><a href='"+spot.url+"' target='_blank' rel='noopener'>visit website &#8599;</a></div>":"");
+      var popup=new maplibregl.Popup({offset:14,maxWidth:"220px"}).setHTML(popupHtml);
+
+      // opacityWhenCovered:"1" stops MapLibre's terrain-depth check from fading a
+      // pin just because it sits close to the modelled ground surface (common for
+      // ordinary street-level spots once real terrain is on). We deliberately do
+      // NOT call marker.setPopup()/rely on its built-in click-to-toggle, because
+      // that same depth check also silently blocks togglePopup() from opening the
+      // popup at all -- instead we open/close the popup ourselves below, on both
+      // the pin and the sidebar row, so it's never gated by that check.
+      var marker=new maplibregl.Marker({element:el,opacityWhenCovered:"1"}).setLngLat([spot.lon,spot.lat]).addTo(cityMap);
+      cityMarkers.push(marker);
+
+      function togglePopupManually(){
+        popup.setLngLat([spot.lon,spot.lat]);
+        if(popup.isOpen()){popup.remove();}else{popup.addTo(cityMap);}
+      }
+      el.addEventListener("click",function(e){e.stopPropagation();togglePopupManually();});
+
       var item=document.createElement("div");
       item.className="spot-item";
       item.innerHTML="<span class='spot-emoji'>"+spot.emoji+"</span><div class='spot-info'><div class='spot-name'>"+spot.name+"</div><div class='spot-cat'>"+spot.cat+"</div></div>";
-      (function(m,s){item.addEventListener("click",function(){leafletMap.setView([s.lat,s.lon],15,{animate:true});m.openPopup();});})(marker,spot);
+      item.addEventListener("click",function(){
+        document.querySelectorAll(".spot-item").forEach(function(si){si.classList.remove("active");});
+        item.classList.add("active");
+        cityMap.flyTo({center:[spot.lon,spot.lat],zoom:17,pitch:65,bearing:city.bearing||0,essential:true,speed:0.9});
+        if(!popup.isOpen())togglePopupManually();
+      });
       document.getElementById("spots-list").appendChild(item);
     });
-    setTimeout(function(){leafletMap.invalidateSize();},100);
+
+    setTimeout(function(){if(cityMap)cityMap.resize();},120);
   }
 
-  function doSwap(id,cityName){
+  function doSwap(id,arg){
     document.querySelectorAll(".page").forEach(function(p){p.classList.remove("active","visible");});
     document.querySelectorAll("nav button").forEach(function(b){b.classList.remove("active");});
     var next=document.getElementById("page-"+id);
     next.classList.add("active");
     if(NAV_PAGES.indexOf(id)!==-1){document.getElementById("nav-"+id).classList.add("active");}
+    if(id==="game"){document.getElementById("nav-projects").classList.add("active");}
     window.scrollTo({top:0,behavior:"instant"});
-    if(id==="city"&&cityName){document.getElementById("city-page-title").textContent=cityName;buildCityMap(cityName);}
+    if(id==="city"&&arg){document.getElementById("city-page-title").textContent=arg;buildCityMap(arg);}
+    if(id==="projects"){renderProjectList();}
+    if(id==="game"&&arg&&PROJECTS[arg]){
+      document.getElementById("game-page-title").innerHTML=PROJECTS[arg].title;
+      PROJECTS[arg].open();
+    }
     requestAnimationFrame(function(){
       document.getElementById("page-veil").classList.remove("covering");
       requestAnimationFrame(function(){next.classList.add("visible");});
     });
   }
 
+  // Browsers refuse to change the URL path via the History API for a page
+  // opened as a local file (file:///.../index.html) -- pushState/replaceState
+  // throw a SecurityError there. That's fine on the real site (GitHub Pages,
+  // https), but when testing locally it must not be allowed to break page
+  // navigation. These wrappers swallow that specific failure so clicking
+  // around still works when you just double-click the file to open it.
+  function safePushState(state,url){
+    try{history.pushState(state,"",url);}catch(e){/* file:// origin -- ignore */}
+  }
+  function safeReplaceState(state,url){
+    try{history.replaceState(state,"",url);}catch(e){/* file:// origin -- ignore */}
+  }
+
   function showPage(id,push){
-    if(push!==false)history.pushState({page:id},"",(id==="home"?"/":"/"+id));
+    if(push!==false)safePushState({page:id},(id==="home"?"/":"/"+id));
     document.getElementById("page-veil").classList.add("covering");
     setTimeout(function(){doSwap(id,null);},260);
   }
 
   function openCity(cityName,push){
-    if(push!==false)history.pushState({page:"city",city:cityName},"",(window.location.origin+"/city/"+encodeURIComponent(cityName)));
+    if(push!==false)safePushState({page:"city",city:cityName},(window.location.origin+"/city/"+encodeURIComponent(cityName)));
     document.getElementById("page-veil").classList.add("covering");
     setTimeout(function(){doSwap("city",cityName);},260);
+  }
+
+  function openProject(slug,push){
+    if(!PROJECTS[slug])return;
+    if(push!==false)safePushState({page:"game",slug:slug},(window.location.origin+"/projects/"+slug));
+    document.getElementById("page-veil").classList.add("covering");
+    setTimeout(function(){doSwap("game",slug);},260);
   }
 
   window.addEventListener("popstate",function(e){
     var s=e.state;
     if(!s){showPage("home",false);return;}
     if(s.page==="city"&&s.city){openCity(s.city,false);}
+    else if(s.page==="game"&&s.slug){openProject(s.slug,false);}
     else{showPage(s.page||"home",false);}
   });
 
@@ -288,11 +1590,25 @@
     var params=new URLSearchParams(window.location.search);
     var p=params.get("p");
     var path=p?decodeURIComponent(p).replace(/^\/|\/$/g,""):window.location.pathname.replace(/^\/|\/$/g,"")||"home";
-    if(p){history.replaceState(null,"",(path==="home"?"/":"/"+path));}
+    if(p){safeReplaceState(null,(path==="home"?"/":"/"+path));}
+    if(path.indexOf("projects/")===0){
+      var slug=decodeURIComponent(path.replace("projects/",""));
+      if(PROJECTS[slug]){
+        safeReplaceState({page:"game",slug:slug},(window.location.origin+"/projects/"+slug));
+        document.querySelectorAll(".page").forEach(function(pg){pg.classList.remove("active","visible");});
+        var gp=document.getElementById("page-game");
+        gp.classList.add("active","visible");
+        document.getElementById("nav-projects").classList.add("active");
+        document.getElementById("game-page-title").innerHTML=PROJECTS[slug].title;
+        renderProjectList();
+        PROJECTS[slug].open();
+        return;
+      }
+    }
     if(path.indexOf("city/")===0){
       var cn=decodeURIComponent(path.replace("city/",""));
       if(CITIES[cn]){
-        history.replaceState({page:"city",city:cn},"",(window.location.origin+"/city/"+encodeURIComponent(cn)));
+        safeReplaceState({page:"city",city:cn},(window.location.origin+"/city/"+encodeURIComponent(cn)));
         document.querySelectorAll(".page").forEach(function(pg){pg.classList.remove("active","visible");});
         var nx=document.getElementById("page-city");
         nx.classList.add("active","visible");
@@ -302,13 +1618,14 @@
       }
     }
     var id=NAV_PAGES.indexOf(path)!==-1?path:"home";
-    history.replaceState({page:id},"",(id==="home"?"/":"/"+id));
+    safeReplaceState({page:id},(id==="home"?"/":"/"+id));
     if(id!=="home"){
       document.querySelectorAll(".page").forEach(function(pg){pg.classList.remove("active","visible");});
       document.querySelectorAll("nav button").forEach(function(b){b.classList.remove("active");});
       var nx=document.getElementById("page-"+id);
       nx.classList.add("active","visible");
       document.getElementById("nav-"+id).classList.add("active");
+      if(id==="projects")renderProjectList();
     }
   })();
   </script>
