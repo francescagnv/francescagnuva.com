@@ -1,0 +1,54 @@
+PHOTOS FOR YOUR MAP SPOTS
+=========================
+
+Drop a photo into this folder named after the spot and it shows up when you
+click that pin on the map. Nothing to edit in the code.
+
+  verjus.jpg      the photo for Verjus
+  verjus-2.jpg    a second photo -- arrows appear so you can flip between them
+  verjus-3.jpg    a third, and so on (up to 12 per spot)
+
+.jpg, .jpeg and .png all work. Keep each under roughly 400kb so the popups stay
+snappy. Numbering must be consecutive: if -2 is missing, -3 is never looked for.
+
+Remember to commit this folder to GitHub along with index.html and 404.html.
+
+FILENAMES (sidebar order)
+-------------------------
+
+  verjus.jpg                   Verjus
+  pearl-6101.jpg               Pearl 6101
+  dalida.jpg                   Dalida
+  bix.jpg                      Bix
+  foreign-cinema.jpg           Foreign Cinema
+  the-anchovy-bar.jpg          The Anchovy Bar
+  the-progress.jpg             The Progress
+  state-bird-provisions.jpg    State Bird Provisions
+  rt-bistro.jpg                RT Bistro
+  rich-table.jpg               Rich Table
+  joujou.jpg                   JouJou
+  ozumo.jpg                    Ozumo
+  hillstone.jpg                Hillstone
+  cotogna.jpg                  Cotogna
+  roka-akor.jpg                Roka Akor
+  chisai-sushi-club.jpg        Chisai Sushi Club
+  rintaro.jpg                  Rintaro
+  itria.jpg                    Itria
+  roaming-goat.jpg             Roaming Goat
+  tailors-son.jpg              Tailor's Son
+  routier.jpg                  Routier
+  celeste.jpg                  Celeste
+  mess-hall.jpg                Mess Hall
+  true-laurel.jpg              True Laurel
+  huntington-hotel.jpg         Huntington Hotel
+  mili-wine-bar.jpg            Mili Wine Bar
+  bosque.jpg                   Bosque
+  birba.jpg                    Birba
+  buddy.jpg                    Buddy
+  saison-wine-bar.jpg          Saison Wine Bar
+  bar-crenn.jpg                Bar Crenn
+  bar-shoji.jpg                Bar Shoji
+  bar-part-time.jpg            Bar Part Time
+  key-klub.jpg                 Key Klub
+  liholiho-yacht-club.jpg      Liholiho Yacht Club
+  side-a.jpg                   Side A
