@@ -71,21 +71,23 @@
     .film-grid img,.art-grid img{width:100%;display:block;margin:0 0 6px;border:none;border-radius:0;box-shadow:none;outline:none}
     @media(max-width:900px){.film-grid,.art-grid{column-count:2}}
     @media(max-width:560px){.film-grid,.art-grid{column-count:1}}
-    #page-city{flex-direction:column}
+    #page-city{flex-direction:column;height:100vh;max-height:100vh;overflow:hidden}
     .city-header{padding:2rem 6vw 1.5rem;border-bottom:1px solid rgba(26,26,18,.18);display:flex;align-items:center;gap:1.5rem}
     .city-back{background:none;border:none;cursor:pointer;font-family:"Roboto Mono",monospace;font-size:.75rem;color:#1a1a12;opacity:.5;transition:opacity .2s}
     .city-back:hover{opacity:1}
     .city-title{font-size:clamp(1.6rem,3.5vw,2.6rem);font-weight:400;font-style:italic}
-    .city-layout{display:flex;flex:1;min-height:0}
-    #city-map{flex:1;min-height:520px;z-index:1;position:relative;background:#dfe6e0}
-    .city-sidebar{width:280px;flex-shrink:0;border-left:1.5px solid #1a1a12;display:flex;flex-direction:column;overflow:hidden;background:rgba(255,250,252,.8)}
+    /* The city page gives its vertical space to the map, so its header is a
+       thin line rather than a banner. The game pages keep the big title. */
+    #page-city .city-header{padding:.8rem 6vw .7rem;align-items:center;gap:1.1rem}
+    .city-layout{display:flex;flex:1;min-height:0;overflow:hidden}
+    #city-map{flex:1;min-height:0;height:100%;z-index:1;position:relative;background:#fdf2da}
+    .city-sidebar{width:280px;flex-shrink:0;min-height:0;border-left:1.5px solid #1a1a12;display:flex;flex-direction:column;overflow:hidden;background:rgba(255,250,252,.8)}
     .sidebar-title{padding:1.4rem 1.5rem 1rem;font-size:.8rem;letter-spacing:.14em;text-transform:uppercase;opacity:.45;border-bottom:1px solid rgba(26,26,18,.12);font-family:"Roboto Mono",monospace}
-    .spots-list{flex:1;overflow-y:auto;padding:.5rem 0}
-    .spot-item{padding:.9rem 1.5rem;border-bottom:1px solid rgba(26,26,18,.08);cursor:pointer;transition:background .15s;display:flex;gap:.8rem;align-items:flex-start}
+    .spots-list{flex:1;min-height:0;overflow-y:auto;padding:.5rem 0}
+    .spot-item{padding:.7rem 1.5rem;border-bottom:1px solid rgba(26,26,18,.08);cursor:pointer;transition:background .15s;display:flex;gap:.7rem;align-items:center}
     .spot-item:hover,.spot-item.active{background:rgba(255,255,255,.5)}
-    .spot-emoji{font-size:1rem;margin-top:.1rem;flex-shrink:0}
+    .spot-emoji{font-size:1rem;flex-shrink:0}
     .spot-name{font-size:1rem;font-weight:500;line-height:1.2}
-    .spot-cat{font-size:.78rem;font-style:italic;opacity:.5;margin-top:.1rem}
     .maplibregl-popup-content{font-family:"EB Garamond",serif!important;border-radius:0!important;border:1px solid #1a1a12!important;box-shadow:4px 4px 0 rgba(26,26,18,.08)!important;background:rgba(255,250,252,.97)!important;padding:10px 14px!important}
     .maplibregl-popup-anchor-bottom .maplibregl-popup-tip{border-top-color:rgba(255,250,252,.97)!important}
     .maplibregl-popup-anchor-top .maplibregl-popup-tip{border-bottom-color:rgba(255,250,252,.97)!important}
@@ -95,12 +97,49 @@
     .maplibregl-popup-close-button:hover{opacity:1;background:none}
     .maplibregl-ctrl-attrib{font-family:"Roboto Mono",monospace;font-size:.68rem}
     .popup-name{font-weight:500;font-size:1.05rem}
+    .spot-popup .maplibregl-popup-content{padding:9px 10px 8px!important}
     .popup-cat{font-style:italic;opacity:.6;font-size:.88rem}
     .popup-note{margin-top:.3rem;font-size:.92rem;opacity:.8}
+    .popup-photo{margin:.5rem 0 .1rem}
+    .popup-photo img{display:block;width:100%;height:auto;border:1px solid #1a1a12}
+    /* Spot photos use the film page's mosaic: tight columns, no borders,
+       images running edge to edge. Capped in height so a spot with a dozen
+       photos scrolls inside its popup instead of overflowing the map. */
+    .popup-gallery{margin:.6rem 0 .2rem;column-count:2;column-gap:6px;
+                   max-height:250px;overflow-y:auto;overscroll-behavior:contain}
+    .popup-gallery img{width:100%;display:block;margin:0 0 6px;border:none;border-radius:0;
+                       box-shadow:none;outline:none;cursor:zoom-in}
+    .popup-gallery::-webkit-scrollbar{width:5px}
+    .popup-gallery::-webkit-scrollbar-thumb{background:rgba(26,26,18,.22);border-radius:3px}
+    .gal-hint{font-family:"Roboto Mono",monospace;font-size:.58rem;letter-spacing:.04em;opacity:.38;margin-top:.35rem}
+    /* Clicking a photo opens it full size over the page. */
+    #photo-viewer{position:fixed;inset:0;z-index:60;background:rgba(26,26,18,.92);display:none;
+                  align-items:center;justify-content:center;cursor:zoom-out;padding:3vh 3vw}
+    #photo-viewer.show{display:flex}
+    #photo-viewer img{max-width:100%;max-height:94vh;display:block;box-shadow:0 10px 40px rgba(0,0,0,.5)}
     .popup-link{margin-top:.4rem}
     .popup-link a{font-family:"Roboto Mono",monospace;font-size:.72rem;letter-spacing:.03em;color:#1a1a12;text-decoration:none;border-bottom:1px solid currentColor}
-    .spot-dot{width:14px;height:14px;border-radius:50%;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,.35);cursor:pointer}
-    #city-map-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#dfe6e0;font-family:"Roboto Mono",monospace;font-size:.75rem;letter-spacing:.05em;opacity:.5;z-index:2;pointer-events:none;transition:opacity .3s ease}
+    .popup-addr{font-family:"Roboto Mono",monospace;font-size:.68rem;letter-spacing:.02em;opacity:.55;margin-top:.35rem}
+    /* Hand-drawn pin: bold ink outline, category colour, cream dial with a glyph.
+       Sized/positioned so the tip of the teardrop sits exactly on the coordinate. */
+    /* The marker element itself is positioned by MapLibre (it writes an inline
+       transform), so every style of our own lives on the inner wrapper --
+       otherwise hover scaling silently fights the map's own positioning. */
+    .spot-pin{cursor:pointer;width:34px;height:44px}
+    .spot-pin-inner{position:relative;width:34px;height:44px;transform-origin:50% 100%;
+              transition:transform .18s cubic-bezier(.3,1.5,.5,1);
+              filter:drop-shadow(1px 3px 3px rgba(26,26,18,.38))}
+    .spot-pin svg{display:block;width:34px;height:44px}
+    .spot-pin .spot-glyph{position:absolute;top:5px;left:0;width:34px;text-align:center;font-size:12px;line-height:20px;pointer-events:none;user-select:none}
+    .spot-pin:hover{z-index:6}
+    .spot-pin.active{z-index:7}
+    .spot-pin:hover .spot-pin-inner{transform:scale(1.22) translateY(-3px)}
+    .spot-pin.active .spot-pin-inner{transform:scale(1.26) translateY(-4px)}
+    .spot-pin.active .pin-ring{opacity:1;animation:pinPulse 1.6s ease-out infinite}
+    .pin-ring{opacity:0;transform-origin:17px 41px}
+    @keyframes pinPulse{0%{transform:scale(.5);opacity:.85}100%{transform:scale(1.9);opacity:0}}
+    .sidebar-count{font-family:"Roboto Mono",monospace;font-size:.62rem;opacity:.4;letter-spacing:.06em;padding:0 1.5rem .8rem}
+    #city-map-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#fdf2da;font-family:"Roboto Mono",monospace;font-size:.75rem;letter-spacing:.05em;opacity:.5;z-index:2;pointer-events:none;transition:opacity .3s ease}
     #city-map-loading.hidden{opacity:0}
     @media(max-width:700px){.city-layout{flex-direction:column}.city-sidebar{width:100%;border-left:none;border-top:1.5px solid #1a1a12;max-height:240px}}
     footer{border-top:1.5px solid #1a1a12;padding:1.8rem 6vw;display:flex;justify-content:space-between;font-size:.85rem;font-style:italic;opacity:.5;flex-wrap:wrap;gap:.5rem;flex-shrink:0}
@@ -286,7 +325,6 @@
   <div id="page-city" class="page">
     <div class="city-header">
       <button class="city-back" onclick="showPage('home')">back to globe</button>
-      <h2 class="city-title" id="city-page-title"></h2>
     </div>
     <div class="city-layout">
       <div id="city-map">
@@ -294,11 +332,13 @@
       </div>
       <div class="city-sidebar">
         <div class="sidebar-title">favourite spots</div>
+        <div class="sidebar-count" id="spots-count"></div>
         <div class="spots-list" id="spots-list"></div>
       </div>
     </div>
   </div>
 
+  <div id="photo-viewer" onclick="closePhotoViewer()"><img src="" alt=""></div>
   <div id="page-veil"></div>
   <div id="map-tooltip"></div>
 
@@ -1350,15 +1390,66 @@
   // for a nice 3D approach angle, and a list of favourite spots to pin. Zoom
   // starts pulled back to a whole-city view (parks, bridges, the shape of the
   // coastline/river all visible) -- scroll/pinch or the +/- control to zoom in.
+  // Categories drive both the pin colour and the little glyph on the dial.
+  var CATS={
+    "restaurant"  :{color:"#e4572e",glyph:"🍽️"},
+    "italian"     :{color:"#2e9e5b",glyph:"🍝"},
+    "japanese"    :{color:"#3f6fd8",glyph:"🍣"},
+    "wine bar"    :{color:"#a02c5a",glyph:"🍷"},
+    "cocktail bar":{color:"#6b45c4",glyph:"🍸"},
+    "coffee"      :{color:"#8a5a2b",glyph:"☕"},
+    "hotel"       :{color:"#d9a326",glyph:"🛎️"}
+  };
+  function catInfo(c){return CATS[c]||{color:"#555",glyph:"★"};}
+  function colorForCat(c){return catInfo(c).color;}
+
+  // Francesca's San Francisco. Coordinates checked against each venue's own
+  // address; `photo` is left empty for now and renders in the popup once filled.
+  var SF_SPOTS=[
+    {name:"Verjus",              cat:"wine bar",    lat:37.795747, lon:-122.402674,addr:"528 Washington St",slug:"verjus"},
+    {name:"Pearl 6101",          cat:"restaurant",  lat:37.783839, lon:-122.483083,addr:"6101 California St",slug:"pearl-6101"},
+    {name:"Dalida",              cat:"restaurant",  lat:37.800027, lon:-122.459605,addr:"101 Montgomery St, Presidio",slug:"dalida"},
+    {name:"Bix",                 cat:"cocktail bar",lat:37.796805, lon:-122.402885,addr:"56 Gold St",slug:"bix"},
+    {name:"Foreign Cinema",      cat:"restaurant",  lat:37.756449, lon:-122.419139,addr:"2534 Mission St",slug:"foreign-cinema"},
+    {name:"The Anchovy Bar",     cat:"restaurant",  lat:37.783411, lon:-122.433226,addr:"1740 O'Farrell St",slug:"the-anchovy-bar"},
+    {name:"The Progress",        cat:"restaurant",  lat:37.783669, lon:-122.433044,addr:"1525 Fillmore St",slug:"the-progress"},
+    {name:"State Bird Provisions",cat:"restaurant", lat:37.783725, lon:-122.432933,addr:"1529 Fillmore St",slug:"state-bird-provisions"},
+    {name:"RT Bistro",           cat:"restaurant",  lat:37.774840, lon:-122.422951,addr:"205 Oak St",slug:"rt-bistro"},
+    {name:"Rich Table",          cat:"restaurant",  lat:37.774866, lon:-122.422752,addr:"199 Gough St",slug:"rich-table"},
+    {name:"JouJou",              cat:"restaurant",  lat:37.769674, lon:-122.403835,addr:"65 Division St",slug:"joujou"},
+    {name:"Ozumo",               cat:"japanese",    lat:37.792688, lon:-122.392267,addr:"161 Steuart St",slug:"ozumo"},
+    {name:"Hillstone",           cat:"restaurant",  lat:37.805993, lon:-122.405146,addr:"1800 Montgomery St",slug:"hillstone"},
+    {name:"Cotogna",             cat:"italian",     lat:37.797424, lon:-122.403563,addr:"490 Pacific Ave",slug:"cotogna"},
+    {name:"Roka Akor",           cat:"japanese",    lat:37.796480, lon:-122.403723,addr:"801 Montgomery St",slug:"roka-akor"},
+    {name:"Chisai Sushi Club",   cat:"japanese",    lat:37.742630, lon:-122.421550,addr:"3369 Mission St",slug:"chisai-sushi-club"},
+    {name:"Rintaro",             cat:"japanese",    lat:37.768815, lon:-122.415110,addr:"82 14th St",slug:"rintaro"},
+    {name:"Itria",               cat:"italian",     lat:37.752387, lon:-122.417828,addr:"3266 24th St",slug:"itria"},
+    {name:"Roaming Goat",        cat:"coffee",      lat:37.797980, lon:-122.429520,addr:"1830 Union St",slug:"roaming-goat"},
+    {name:"Tailor's Son",        cat:"italian",     lat:37.788603, lon:-122.433987,addr:"2049 Fillmore St",slug:"tailors-son"},
+    {name:"Routier",             cat:"restaurant",  lat:37.787899, lon:-122.440601,addr:"2801 California St",slug:"routier"},
+    {name:"Celeste",             cat:"restaurant",  lat:37.797018, lon:-122.434873,addr:"2165 Union St",slug:"celeste"},
+    {name:"Mess Hall",           cat:"restaurant",  lat:37.802610, lon:-122.454660,addr:"201 Halleck St, Presidio",slug:"mess-hall"},
+    {name:"True Laurel",         cat:"cocktail bar",lat:37.759494, lon:-122.411487,addr:"753 Alabama St",slug:"true-laurel"},
+    {name:"Huntington Hotel",    cat:"hotel",       lat:37.791390, lon:-122.412220,addr:"1075 California St",slug:"huntington-hotel"},
+    {name:"Mili Wine Bar",       cat:"wine bar",    lat:37.790020, lon:-122.391280,addr:"110 Folsom St",slug:"mili-wine-bar"},
+    {name:"Bosque",              cat:"wine bar",    lat:37.776261, lon:-122.426529,addr:"609 Hayes St",slug:"bosque"},
+    {name:"Birba",               cat:"wine bar",    lat:37.777835, lon:-122.424224,addr:"458 Grove St",slug:"birba"},
+    {name:"Buddy",               cat:"restaurant",  lat:37.755396, lon:-122.417110,addr:"3115 22nd St",slug:"buddy"},
+    {name:"Saison Wine Bar",     cat:"wine bar",    lat:37.778207, lon:-122.393808,addr:"234 Townsend St",slug:"saison-wine-bar"},
+    {name:"Bar Crenn",           cat:"wine bar",    lat:37.798402, lon:-122.435916,addr:"3131 Fillmore St",slug:"bar-crenn"},
+    {name:"Bar Shoji",           cat:"cocktail bar",lat:37.786819, lon:-122.399906,addr:"140 New Montgomery St",slug:"bar-shoji"},
+    {name:"Bar Part Time",       cat:"wine bar",    lat:37.768123, lon:-122.424181,addr:"496 14th St",slug:"bar-part-time"},
+    {name:"Key Klub",            cat:"cocktail bar",lat:37.790016, lon:-122.411366,addr:"850 Bush St",slug:"key-klub"},
+    {name:"Liholiho Yacht Club", cat:"restaurant",  lat:37.788300, lon:-122.414597,addr:"871 Sutter St",slug:"liholiho-yacht-club"},
+    {name:"Side A",              cat:"restaurant",  lat:37.760626, lon:-122.410568,addr:"2814 19th St",slug:"side-a"}
+  ];
+
   var CITIES = {
-    "San Francisco":{lat:37.7749,lon:-122.4194,zoom:11.6,pitch:48,bearing:-21,spots:[]},
+    "San Francisco":{lat:37.7790,lon:-122.4260,zoom:12.1,pitch:48,overviewPitch:30,bearing:-14,spots:SF_SPOTS},
     "New York City":{lat:40.7300,lon:-73.9950,zoom:10.7,pitch:45,bearing:-17,spots:[]},
     "Boston":{lat:42.3550,lon:-71.0700,zoom:11.6,pitch:45,bearing:8,spots:[]},
     "Austin":{lat:30.2850,lon:-97.7400,zoom:11.4,pitch:45,bearing:19,spots:[]}
   };
-
-  var CAT_COLORS={"Museum":"#8e44ad","Restaurant":"#e74c3c","Bar":"#2c3e50","Cafe":"#c0835a","Coffee":"#c0835a","Park":"#27ae60","Bookshop":"#2980b9","Breakfast":"#e67e22"};
-  function colorForCat(c){return CAT_COLORS[c]||"#555";}
   var cityMap=null;
   var cityMarkers=[];
   var NAV_PAGES=["experiences","art","film","writings","readings","projects"];
@@ -1745,78 +1836,268 @@
   }
 
   // ---- Cartoon map palette -----------------------------------------------
-  // Recolours OpenFreeMap's "Liberty" style into something flatter and more
-  // illustrated: paper-cream land, bright water, punchy greens, white roads
-  // with bold casings. Layer ids below come from the real Liberty style; each
-  // is guarded, so if upstream renames something we just skip it.
+  // Redraws OpenFreeMap's "Liberty" style as an illustrated map rather than a
+  // recolour of an atlas: warm paper land, poster-flat parks and water, chunky
+  // rounded roads with heavy ink casings, peach buildings that get warmer as
+  // they get taller, and labels inked onto a thick cream halo. Detail is pushed
+  // earlier too -- buildings, shops and street names all arrive several zoom
+  // levels sooner than stock Liberty shows them. Layer ids come from the real
+  // Liberty style; every call is guarded, so if upstream renames a layer we
+  // simply skip it instead of breaking the map.
   var CARTOON={
-    "background":{"background-color":"#fbf3e2"},
-    "water":{"fill-color":"#5fc4e8"},
-    "waterway_river":{"line-color":"#5fc4e8"},
-    "waterway_other":{"line-color":"#7ed0ea"},
-    "waterway_tunnel":{"line-color":"#7ed0ea"},
-    "park":{"fill-color":"#8fd982","fill-opacity":.85},
-    "park_outline":{"line-color":"#5fb552","line-width":1},
-    "landcover_wood":{"fill-color":"#79cc6b","fill-opacity":.8},
-    "landcover_grass":{"fill-color":"#a9e197"},
-    "landcover_ice":{"fill-color":"#e6f5fb"},
-    "landcover_wetland":{"fill-color":"#b7dcc2"},
-    "landcover_sand":{"fill-color":"#f8e4a6"},
-    "landuse_residential":{"fill-color":"#f7edd9"},
-    "landuse_pitch":{"fill-color":"#a6dd94"},
-    "landuse_track":{"fill-color":"#cfe5b4"},
-    "landuse_cemetery":{"fill-color":"#c9e0ae"},
-    "landuse_hospital":{"fill-color":"#ffd9dd"},
-    "landuse_school":{"fill-color":"#ffe7ae"},
-    "aeroway_fill":{"fill-color":"#e9e2d4"},
-    "aeroway_runway":{"line-color":"#f7f1e4"},
-    "aeroway_taxiway":{"line-color":"#f7f1e4"},
-    "building":{"fill-color":"#f0d5ab","fill-outline-color":"#d3ab73"},
-    "building-3d":{"fill-extrusion-color":"#edd0a4","fill-extrusion-opacity":.95},
-    "boundary_2":{"line-color":"#b09a80"},
-    "boundary_3":{"line-color":"#c9b9a5"}
+    "background":{"background-color":"#fdf2da"},
+    "natural_earth":{"raster-opacity":.4,"raster-saturation":.3},
+    "water":{"fill-color":"#57c4ef"},
+    "waterway_river":{"line-color":"#57c4ef"},
+    "waterway_other":{"line-color":"#79d2f0"},
+    "waterway_tunnel":{"line-color":"#79d2f0"},
+    "park":{"fill-color":"#84d579","fill-opacity":.92},
+    "park_outline":{"line-color":"#4da842","line-width":1.6},
+    "landcover_wood":{"fill-color":"#5fc35c","fill-opacity":.9},
+    "landcover_grass":{"fill-color":"#a6e494"},
+    "landcover_ice":{"fill-color":"#e9f7fd"},
+    "landcover_wetland":{"fill-color":"#a9dcbb"},
+    "landcover_sand":{"fill-color":"#fae5a4"},
+    "landuse_residential":{"fill-color":"#f8ebd0","fill-opacity":.9},
+    "landuse_pitch":{"fill-color":"#8fdc82"},
+    "landuse_track":{"fill-color":"#d3e8b5"},
+    "landuse_cemetery":{"fill-color":"#c2e0a4"},
+    "landuse_hospital":{"fill-color":"#ffd3d8"},
+    "landuse_school":{"fill-color":"#ffe4a3"},
+    "aeroway_fill":{"fill-color":"#ece3d0"},
+    "aeroway_runway":{"line-color":"#fbf5e6"},
+    "aeroway_taxiway":{"line-color":"#fbf5e6"},
+    "road_area_pattern":{"fill-color":"#f4e7c8","fill-opacity":.7},
+    "building":{"fill-color":"#f4cf9e","fill-outline-color":"#bf8c56","fill-opacity":.95},
+    "building-3d":{"fill-extrusion-color":["interpolate",["linear"],["get","render_height"],
+                     0,"#f9dfb8", 12,"#f3c996", 30,"#ecb478", 70,"#e09f66", 150,"#d08a58"],
+                   "fill-extrusion-opacity":.97},
+    "boundary_2":{"line-color":"#a98e6f"},
+    "boundary_3":{"line-color":"#c6b39a"}
   };
+
+  // One curve, scaled per road class, so every road in the city keeps the same
+  // hand-drawn weight relationship as you zoom. Casings are simply a fatter
+  // copy of the same curve, which is what gives the ink-outline look.
+  function roadW(m){
+    return ["interpolate",["exponential",1.45],["zoom"],
+            5,0.5*m, 9,1.3*m, 12,2.6*m, 14,5*m, 16,9*m, 18,17*m, 20,30*m];
+  }
+
   var ROAD_GROUPS=[
-    {ids:["road_motorway","bridge_motorway","tunnel_motorway","road_motorway_link","bridge_motorway_link","tunnel_motorway_link"],
-     color:"#ffcf5c"},
+    {ids:["road_motorway","bridge_motorway","tunnel_motorway","road_motorway_link",
+          "bridge_motorway_link","tunnel_motorway_link"],
+     color:"#ffc549", width:roadW(1.15)},
+    {ids:["road_motorway_casing","bridge_motorway_casing","tunnel_motorway_casing",
+          "road_motorway_link_casing","bridge_motorway_link_casing","tunnel_motorway_link_casing"],
+     color:"#c9761f", width:roadW(1.75)},
     {ids:["road_trunk_primary","bridge_trunk_primary","tunnel_trunk_primary","road_secondary_tertiary",
           "bridge_secondary_tertiary","tunnel_secondary_tertiary","road_link","bridge_link","tunnel_link"],
-     color:"#ffe9a3"},
+     color:"#ffe49a", width:roadW(0.95)},
+    {ids:["road_trunk_primary_casing","bridge_trunk_primary_casing","tunnel_trunk_primary_casing",
+          "road_secondary_tertiary_casing","bridge_secondary_tertiary_casing","tunnel_secondary_tertiary_casing",
+          "road_link_casing","bridge_link_casing","tunnel_link_casing"],
+     color:"#d79a3c", width:roadW(1.5)},
     {ids:["road_minor","bridge_street","tunnel_minor","road_service_track","bridge_service_track",
           "tunnel_service_track","road_path_pedestrian","bridge_path_pedestrian","tunnel_path_pedestrian"],
-     color:"#ffffff"},
-    {ids:["road_motorway_casing","bridge_motorway_casing","tunnel_motorway_casing","road_motorway_link_casing",
-          "bridge_motorway_link_casing","tunnel_motorway_link_casing","road_trunk_primary_casing",
-          "bridge_trunk_primary_casing","tunnel_trunk_primary_casing","road_secondary_tertiary_casing",
-          "bridge_secondary_tertiary_casing","tunnel_secondary_tertiary_casing","road_link_casing",
-          "bridge_link_casing","tunnel_link_casing"],
-     color:"#e8a33d"},
+     color:"#fffdf6", width:roadW(0.62)},
     {ids:["road_minor_casing","bridge_street_casing","tunnel_street_casing","road_service_track_casing",
           "bridge_service_track_casing","tunnel_service_track_casing","bridge_path_pedestrian_casing"],
-     color:"#e3d3b4"},
+     color:"#d9c49c", width:roadW(1.0)},
     {ids:["road_major_rail","bridge_major_rail","tunnel_major_rail","road_transit_rail","bridge_transit_rail",
           "tunnel_transit_rail","road_major_rail_hatching","bridge_major_rail_hatching","tunnel_major_rail_hatching",
           "road_transit_rail_hatching","bridge_transit_rail_hatching","tunnel_transit_rail_hatching"],
-     color:"#c2ae8f"}
+     color:"#a89075", width:roadW(0.4)}
+  ];
+
+  // Ink-on-cream lettering. The fat halo is what stops a busy illustrated map
+  // from swallowing its own labels.
+  var INK={"text-color":"#4a3823","text-halo-color":"#fff8e6","text-halo-width":2.2,"text-halo-blur":.2};
+  var BLUE_INK={"text-color":"#1b7ea8","text-halo-color":"#ecf9ff","text-halo-width":2,"text-halo-blur":.2};
+  var LABEL_GROUPS=[
+    {ids:["waterway_line_label","water_name_point_label","water_name_line_label"],paint:BLUE_INK},
+    {ids:["poi_r20","poi_r7","poi_r1","poi_transit"],paint:{"text-color":"#5a4326",
+      "text-halo-color":"#fff8e6","text-halo-width":2,"text-halo-blur":.2},
+     layout:{"text-size":["interpolate",["linear"],["zoom"],13,10,16,12,20,14]}},
+    {ids:["highway-name-path","highway-name-minor","highway-name-major"],paint:INK},
+    {ids:["airport","label_other","label_village","label_town","label_city","label_state"],paint:INK}
+  ];
+
+  // Stock Liberty holds these back until you're practically on top of them.
+  // Pulling the minzoom down is most of what makes the map feel "detailed".
+  var ZOOM_RANGES=[
+    ["building",12.5,24],["building-3d",13.8,24],
+    ["poi_r20",13,24],["poi_r7",14.5,24],["poi_r1",15.5,24],["poi_transit",13.5,24],
+    ["highway-name-major",11,24],["highway-name-minor",14,24]
   ];
 
   function applyCartoonPalette(map){
-    Object.keys(CARTOON).forEach(function(id){
+    function paint(id,props){
       if(!map.getLayer(id))return;
-      var props=CARTOON[id];
-      Object.keys(props).forEach(function(prop){
-        try{map.setPaintProperty(id,prop,props[prop]);}catch(e){}
-      });
-    });
+      Object.keys(props).forEach(function(p){try{map.setPaintProperty(id,p,props[p]);}catch(e){}});
+    }
+    function layout(id,props){
+      if(!map.getLayer(id))return;
+      Object.keys(props).forEach(function(p){try{map.setLayoutProperty(id,p,props[p]);}catch(e){}});
+    }
+    Object.keys(CARTOON).forEach(function(id){paint(id,CARTOON[id]);});
     ROAD_GROUPS.forEach(function(grp){
       grp.ids.forEach(function(id){
         if(!map.getLayer(id))return;
-        try{map.setPaintProperty(id,"line-color",grp.color);}catch(e){}
+        paint(id,{"line-color":grp.color,"line-width":grp.width});
         // Rounded ends are most of what makes roads read as drawn rather than plotted.
-        try{map.setLayoutProperty(id,"line-cap","round");}catch(e){}
-        try{map.setLayoutProperty(id,"line-join","round");}catch(e){}
+        layout(id,{"line-cap":"round","line-join":"round"});
       });
     });
+    LABEL_GROUPS.forEach(function(grp){
+      grp.ids.forEach(function(id){
+        paint(id,grp.paint);
+        if(grp.layout)layout(id,grp.layout);
+      });
+    });
+    ZOOM_RANGES.forEach(function(z){
+      if(!map.getLayer(z[0]))return;
+      try{map.setLayerZoomRange(z[0],z[1],z[2]);}catch(e){}
+    });
+  }
+
+  // ---- Spot photos --------------------------------------------------------
+  // Drop a file into the site's spots/ folder named after the spot and it turns
+  // up in that spot's popup -- no code to edit. spots/verjus.jpg is Verjus;
+  // spots/verjus-2.jpg, -3 and so on become extra frames in a little gallery.
+  // Probing happens the first time a spot is opened, so a spot with no photo
+  // costs a couple of quiet 404s and nothing else.
+  var PHOTO_EXTS=["jpg","jpeg","png","JPG","JPEG","PNG"];
+  var photoCache={};
+
+  // Clicking a city pushes the URL to /city/San%20Francisco, which moves the
+  // document base one folder deeper -- so a bare "spots/verjus.jpg" would be
+  // looked for in /city/spots/. Work out the site root once (handling deep
+  // links and opening the file straight off disk) and hang photo URLs off it.
+  var SITE_BASE=(function(){
+    var p=window.location.pathname||"/";
+    p=p.replace(/\/(?:city|projects)\/[^/]*\/?$/,"/");
+    p=p.replace(/\/(?:experiences|art|film|writings|readings|projects|city)\/?$/,"/");
+    if(!/\/$/.test(p))p=p.substring(0,p.lastIndexOf("/")+1);
+    return p||"/";
+  })();
+  function photoURL(name){return SITE_BASE+"spots/"+name;}
+
+  function probeSeries(base,ext,found,done){
+    var n=found.length+1;
+    if(n>12){done(found);return;}
+    var src=photoURL(base+"-"+n+"."+ext);
+    var im=new Image();
+    im.onload=function(){found.push(src);probeSeries(base,ext,found,done);};
+    im.onerror=function(){done(found);};
+    im.src=src;
+  }
+
+  function loadSpotPhotos(slug,cb){
+    if(!slug){cb([]);return;}
+    if(photoCache[slug]){cb(photoCache[slug]);return;}
+    (function tryExt(i){
+      if(i>=PHOTO_EXTS.length){photoCache[slug]=[];cb([]);return;}
+      var ext=PHOTO_EXTS[i];
+      var first=photoURL(slug+"."+ext);
+      var im=new Image();
+      im.onload=function(){
+        probeSeries(slug,ext,[first],function(list){
+          photoCache[slug]=list;cb(list);
+        });
+      };
+      im.onerror=function(){tryExt(i+1);};
+      im.src=first;
+    })(0);
+  }
+
+  function renderSpotGallery(slotId,spot,popup){
+    var slot=document.getElementById(slotId);
+    if(!slot)return;
+    // An explicit photo/photos field on the spot wins; otherwise go looking.
+    var explicit=spot.photos||(spot.photo?[spot.photo]:null);
+    if(explicit&&explicit.length){paint(explicit);return;}
+    loadSpotPhotos(spot.slug,paint);
+
+    function paint(list){
+      var el=document.getElementById(slotId);
+      if(!el)return;
+      if(!list.length){
+        el.innerHTML="<div class='gal-hint'>add spots/"+(spot.slug||"")+".jpg to show a photo</div>";
+        return;
+      }
+      el.className="popup-gallery";
+      el.style.maxHeight=galleryMaxPx()+"px";
+      el.innerHTML=list.map(function(src){
+        return "<img src='"+src+"' alt='"+spot.name+"'>";
+      }).join("");
+      el.querySelectorAll("img").forEach(function(im){
+        im.addEventListener("click",function(e){e.stopPropagation();openPhotoViewer(im.getAttribute("src"));});
+        // MapLibre picks which side of the pin to open on by measuring the
+        // popup, and photos have no height until they've decoded -- so without
+        // re-settling here the popup opens sized for text and hangs off the map.
+        if(im.complete)settlePopup(popup);
+        else im.addEventListener("load",function(){settlePopup(popup);});
+      });
+      settlePopup(popup);
+    }
+  }
+
+  // Re-measure an open popup and nudge the map if it still pokes outside the
+  // frame, so a tall photo mosaic is always fully visible.
+  // How tall the photo mosaic may be, and how far below centre to land a pin,
+  // both derived from the map's real height -- so the popup fits on a laptop
+  // with a short window just as well as on a tall one.
+  function galleryMaxPx(){
+    var h=cityMap?cityMap.getContainer().clientHeight:600;
+    return Math.max(120,Math.min(260,Math.round(h*0.42),h-190));
+  }
+  function popupOffsetY(){
+    var h=cityMap?cityMap.getContainer().clientHeight:600;
+    var popupH=galleryMaxPx()+90;
+    return Math.round(Math.min(h-40,popupH+60)-h/2);
+  }
+
+  function settlePopup(popup){
+    if(!popup||!cityMap)return;
+    try{popup.setLngLat(popup.getLngLat());}catch(e){}
+    // Wait for the camera to come to rest before nudging it -- but poll rather
+    // than listening for "moveend", because this can be called from inside a
+    // moveend handler, where a further event may never arrive.
+    var tries=0;
+    (function attempt(){
+      if(!cityMap||!popup.isOpen())return;
+      if(cityMap.isMoving()&&tries++<14){setTimeout(attempt,150);return;}
+      var pc=document.querySelector(".maplibregl-popup");
+      if(!pc)return;
+      var pr=pc.getBoundingClientRect(),mr=cityMap.getContainer().getBoundingClientRect();
+      var dy=Math.max(0,(mr.top+12)-pr.top)-Math.max(0,pr.bottom-(mr.bottom-12));
+      var dx=Math.max(0,(mr.left+12)-pr.left)-Math.max(0,pr.right-(mr.right-12));
+      if(Math.abs(dx)>2||Math.abs(dy)>2)cityMap.panBy([-dx,-dy],{duration:300});
+    })();
+  }
+
+  function openPhotoViewer(src){
+    var v=document.getElementById("photo-viewer");
+    if(!v)return;
+    v.querySelector("img").setAttribute("src",src);
+    v.classList.add("show");
+  }
+  function closePhotoViewer(){
+    var v=document.getElementById("photo-viewer");
+    if(v)v.classList.remove("show");
+  }
+  document.addEventListener("keydown",function(e){
+    if(e.key==="Escape")closePhotoViewer();
+  });
+
+  // Darken (or lighten, with a positive amount) a hex colour.
+  function shade(hex,amt){
+    var h=hex.replace("#","");
+    if(h.length===3)h=h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+    var n=parseInt(h,16),r=(n>>16)&255,g=(n>>8)&255,b=n&255;
+    function mix(c){return Math.max(0,Math.min(255,Math.round(amt<0?c*(1+amt):c+(255-c)*amt)));}
+    return "#"+[mix(r),mix(g),mix(b)].map(function(c){return ("0"+c.toString(16)).slice(-2);}).join("");
   }
 
   function buildCityMap(cityName){
@@ -1883,6 +2164,9 @@
         zoom:city.zoom,
         pitch:city.pitch||60,
         bearing:city.bearing||0,
+        minZoom:9.5,
+        maxZoom:19.5,
+        maxPitch:75,
         antialias:true
       });
     }catch(err){
@@ -1914,6 +2198,28 @@
         });
       }
       cityMap.setTerrain({source:"terrain-dem",exaggeration:1.3});
+      // Warm hand-shaded relief from the same elevation data, slipped in under
+      // the roads. On a city of hills this is what stops the illustrated map
+      // from reading as a flat sticker.
+      if(!cityMap.getLayer("cartoon-hillshade")){
+        var beforeId=null;
+        ["tunnel_motorway_link_casing","road_motorway_casing","building"].forEach(function(id){
+          if(!beforeId&&cityMap.getLayer(id))beforeId=id;
+        });
+        try{
+          cityMap.addLayer({
+            id:"cartoon-hillshade",
+            type:"hillshade",
+            source:"terrain-dem",
+            paint:{
+              "hillshade-exaggeration":.32,
+              "hillshade-shadow-color":"#b98a52",
+              "hillshade-highlight-color":"#fffaf0",
+              "hillshade-accent-color":"#d9b483"
+            }
+          },beforeId||undefined);
+        }catch(e){}
+      }
       cityMap.setSky({
         "sky-color":"#9ad8f5",
         "sky-horizon-blend":0.5,
@@ -1939,46 +2245,98 @@
       }
     });
 
+    var countEl=document.getElementById("spots-count");
+    if(countEl)countEl.textContent=city.spots.length?city.spots.length+" places":"";
+
     city.spots.forEach(function(spot,idx){
-      var color=colorForCat(spot.cat);
+      var info=catInfo(spot.cat);
+      var color=info.color;
+      var edge=shade(color,-0.26);
       var el=document.createElement("div");
-      el.className="spot-dot";
-      el.style.background=color;
+      el.className="spot-pin";
+      // No ink outline: the pin reads against the map through a darker rim of
+      // its own colour plus a drop shadow, so it stays legible without going
+      // heavy-handed.
+      el.innerHTML="<div class='spot-pin-inner'>"+
+        "<svg viewBox='0 0 34 46' aria-hidden='true'>"+
+          "<circle class='pin-ring' cx='17' cy='41' r='5' fill='none' stroke='"+color+"' stroke-width='2.5'/>"+
+          "<path d='M17 1C8.7 1 2 7.7 2 16c0 10.4 12.3 27.2 13.6 29a1.7 1.7 0 0 0 2.8 0C19.7 43.2 32 26.4 32 16 32 7.7 25.3 1 17 1Z' fill='"+edge+"'/>"+
+          "<path d='M17 2.6C9.6 2.6 3.6 8.6 3.6 16c0 9.7 11.6 25.8 12.7 27.4a.9.9 0 0 0 1.4 0C18.8 41.8 30.4 25.7 30.4 16 30.4 8.6 24.4 2.6 17 2.6Z' fill='"+color+"'/>"+
+          "<path d='M9.6 9.8C11.6 7 14.1 5.7 17.1 5.5' fill='none' stroke='#fffaf0' stroke-width='2.2' stroke-linecap='round' opacity='.45'/>"+
+          "<circle cx='17' cy='16' r='7.8' fill='#fffaf0'/>"+
+        "</svg>"+
+        "<span class='spot-glyph'>"+info.glyph+"</span>"+
+        "</div>";
 
-      var popupHtml="<div class='popup-name'>"+spot.name+"</div><div class='popup-cat'>"+spot.cat+"</div>"+
+      // Name and address only -- no category line, and nothing on hover.
+      var galId="gal-"+(spot.slug||idx);
+      var popupHtml="<div class='popup-name'>"+spot.name+"</div>"+
+        "<div class='popup-gallery-slot' id='"+galId+"'></div>"+
         (spot.note?"<div class='popup-note'>"+spot.note+"</div>":"")+
+        (spot.addr?"<div class='popup-addr'>"+spot.addr+"</div>":"")+
         (spot.url?"<div class='popup-link'><a href='"+spot.url+"' target='_blank' rel='noopener'>visit website &#8599;</a></div>":"");
-      var popup=new maplibregl.Popup({offset:14,maxWidth:"220px"}).setHTML(popupHtml);
+      // The pin stands 44px above its coordinate, so the popup has to clear that
+      // or it opens underneath its own marker.
+      var popup=new maplibregl.Popup({offset:48,maxWidth:"440px",className:"spot-popup"}).setHTML(popupHtml);
+      popup.on("open",function(){renderSpotGallery(galId,spot,popup);});
 
-      // opacityWhenCovered:"1" stops MapLibre's terrain-depth check from fading a
-      // pin just because it sits close to the modelled ground surface (common for
-      // ordinary street-level spots once real terrain is on). We deliberately do
-      // NOT call marker.setPopup()/rely on its built-in click-to-toggle, because
-      // that same depth check also silently blocks togglePopup() from opening the
-      // popup at all -- instead we open/close the popup ourselves below, on both
-      // the pin and the sidebar row, so it's never gated by that check.
-      var marker=new maplibregl.Marker({element:el,opacityWhenCovered:"1"}).setLngLat([spot.lon,spot.lat]).addTo(cityMap);
+      var marker=new maplibregl.Marker({element:el,anchor:"bottom",opacityWhenCovered:"1"})
+        .setLngLat([spot.lon,spot.lat]).addTo(cityMap);
       cityMarkers.push(marker);
 
+      function setActive(){
+        document.querySelectorAll(".spot-pin").forEach(function(p){p.classList.remove("active");});
+        document.querySelectorAll(".spot-item").forEach(function(si){si.classList.remove("active");});
+        el.classList.add("active");
+        item.classList.add("active");
+      }
       function togglePopupManually(){
         popup.setLngLat([spot.lon,spot.lat]);
-        if(popup.isOpen()){popup.remove();}else{popup.addTo(cityMap);}
+        if(popup.isOpen()){popup.remove();}else{popup.addTo(cityMap);setActive();}
       }
       el.addEventListener("click",function(e){e.stopPropagation();togglePopupManually();});
 
       var item=document.createElement("div");
       item.className="spot-item";
-      item.innerHTML="<span class='spot-emoji'>"+spot.emoji+"</span><div class='spot-info'><div class='spot-name'>"+spot.name+"</div><div class='spot-cat'>"+spot.cat+"</div></div>";
+      item.innerHTML="<span class='spot-emoji'>"+info.glyph+"</span>"+
+        "<div class='spot-info'><div class='spot-name'>"+spot.name+"</div></div>";
       item.addEventListener("click",function(){
-        document.querySelectorAll(".spot-item").forEach(function(si){si.classList.remove("active");});
-        item.classList.add("active");
-        cityMap.flyTo({center:[spot.lon,spot.lat],zoom:17,pitch:65,bearing:city.bearing||0,essential:true,speed:0.9});
+        setActive();
+        // Land the pin below centre so there is room above it for a tall photo
+        // popup, instead of opening the popup and then shoving the map around.
+        cityMap.flyTo({center:[spot.lon,spot.lat],zoom:16.4,pitch:55,bearing:city.bearing||0,
+                       offset:[0,popupOffsetY()],
+                       essential:true,duration:900});
         if(!popup.isOpen())togglePopupManually();
+        // An already-open popup won't re-render, so re-settle it against the
+        // new camera position once the flight lands.
+        settlePopup(popup);
       });
       document.getElementById("spots-list").appendChild(item);
     });
 
-    setTimeout(function(){if(cityMap)cityMap.resize();},120);
+    // Frame the whole collection rather than trusting a hand-picked zoom: a
+    // tilted camera stretches the near field a long way, so a fixed zoom that
+    // looks right flat pushes half the pins off the bottom of the screen.
+    function frameSpots(){
+      if(!cityMap||!city.spots.length)return;
+      try{
+        var b=new maplibregl.LngLatBounds();
+        city.spots.forEach(function(s){b.extend([s.lon,s.lat]);});
+        cityMap.fitBounds(b,{
+          padding:{top:70,bottom:60,left:60,right:60},
+          bearing:city.bearing||0,
+          pitch:city.overviewPitch!==undefined?city.overviewPitch:(city.pitch||0),
+          duration:0
+        });
+      }catch(e){}
+    }
+
+    setTimeout(function(){
+      if(!cityMap)return;
+      cityMap.resize();
+      frameSpots();
+    },120);
   }
 
   function doSwap(id,arg){
@@ -1989,7 +2347,11 @@
     if(NAV_PAGES.indexOf(id)!==-1){document.getElementById("nav-"+id).classList.add("active");}
     if(id==="game"){document.getElementById("nav-projects").classList.add("active");}
     window.scrollTo({top:0,behavior:"instant"});
-    if(id==="city"&&arg){document.getElementById("city-page-title").textContent=arg;buildCityMap(arg);}
+    if(id==="city"&&arg){
+      var cityTitle=document.getElementById("city-page-title");
+      if(cityTitle)cityTitle.textContent=arg;
+      buildCityMap(arg);
+    }
     if(id==="projects"){renderProjectList();}
     if(id==="game"&&arg&&PROJECTS[arg]){
       document.getElementById("game-page-title").innerHTML=tintTitle(PROJECTS[arg].title,PROJECTS[arg].palette);
@@ -2068,7 +2430,8 @@
         document.querySelectorAll(".page").forEach(function(pg){pg.classList.remove("active","visible");});
         var nx=document.getElementById("page-city");
         nx.classList.add("active","visible");
-        document.getElementById("city-page-title").textContent=cn;
+        var ct=document.getElementById("city-page-title");
+        if(ct)ct.textContent=cn;
         buildCityMap(cn);
         return;
       }
